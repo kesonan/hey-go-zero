@@ -33,3 +33,6 @@ hey-go-zero是基于[go-zero](https://github.com/tal-tech/go-zero) 的一个示�
 如果此项目对你有帮助，欢迎star！
 
 go-zero项目地址: https://github.com/tal-tech/go-zero
+
+# Let's Go-Zero
+[Let's Go Zero](./doc/index.md)
