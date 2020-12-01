@@ -10,6 +10,7 @@
 * [下载](https://golang.org/dl/) Go安装包
 * [安装](https://golang.org/doc/install) Go语言环境
 * 查看Go版本
+
     ```shell script
     $ go version
     ```
@@ -49,7 +50,9 @@ $ go env -w GOPROXY=https://goproxy.cn
 ```shell script
 $ vi /etc/paths
 ```
+添加执行路径（如:$GOPATH）到末尾,这里建议创建一个自己方便浏览的目录来管理一些可执行文件
 插入后有如下内容
+
 ```text
 /usr/local/bin
 /usr/bin
@@ -58,22 +61,22 @@ $ vi /etc/paths
 /sbin
 /Users/xxx/workspace/private/path [1]
 ```
-添加执行路径（如:$GOPATH）到末尾,这里建议创建一个自己方便浏览的目录来管理一些可执行文件
 > 说明: 在我的电脑是以(`$HOME/workspace/private/path`)来存放可执行文件。
+
 > [1] xxx为用户名称
->
+
 # Goctl工具安装
 ```shell script
 $ go get -u github.com/tal-tech/go-zero/tools/goctl
 ```
-由于安装的goctl二进制文件在`$GOPATH/bin`目录下，我们将其移动到我们之前指定的path路径下，便于管理。
+由于通过`go get`获取到的goctl二进制文件在`$GOPATH/bin`目录下，我们需要将其移动到我们之前指定的path路径下，便于管理。
 ```shell script
 $ mv $GOPATH/bin/goctl $HOME/workspace/private/path [2]
 ```
 
 > [2] `$GOPATH`是一个变量值，在终端下，其具体值可通过`go env GOPATH`查看，随后将其拼接称完成命令即可，如
 ```shell script
-mv /Users/xxx/go/bin/goctl $HOME/workspace/private/path
+$ mv /Users/xxx/go/bin/goctl $HOME/workspace/private/path
 ```
 
 查看`goctl`版本
@@ -93,6 +96,7 @@ Protobuf及Protoc-gen-go是用于后续生产rpc服务的工具依赖。
 * 进入github选择自己操作系统对应的二进制文件[下载](https://github.com/protocolbuffers/protobuf/releases)
 * 解压后将bin目录中的`protoc`存放到我们之前指定的path(`$HOME/workspace/private/path`)目录下即可
 * 查看版本
+
     ```shell script
     $ protoc --version
     ```
