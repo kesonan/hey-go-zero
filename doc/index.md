@@ -33,6 +33,13 @@ $ echo hello
 `Goctl` go-zero自带的代码生产工具
 
 # 目录
-* [准备工作](./prepare/prepare.md)
-* [需求概况](./requirement/summary.md)
+* [准备工作](./prepare)
+    * [准备工作](./prepare/prepare.md)
+    * [Goctl介绍](./prepare/goctl-intro.md)
+    * [《服务目录结构介绍》](./prepare/service-structure.md)
+    * [《Api语法介绍》](./prepare/api-grammar.md)
+    * [《Proto使用说明》](./prepare/proto-rule.md)
+    
+* [需求概况](./requirement)
+    * [需求概况](./requirement/summary.md)
 
