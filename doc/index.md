@@ -13,6 +13,7 @@
 * Go
 * IDE(Goland、Atom、VSCode)
 * Goctl
+* Postman
 
 # 集成依赖
 * go-zero（core）

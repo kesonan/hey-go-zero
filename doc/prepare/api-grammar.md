@@ -200,6 +200,13 @@ type $name {
 * `$filedName`为字段名称，必须满足【ID命名规则】，见下文
 * `$rawString`为raw string，即通过"`"引起来的字符串
 
+    | key  | 描述                                             | 支持                    | 生效范围             | 示例        |
+    |------|--------------------------------------------------|-------------------------|----------------------|-------------|
+    | json | json序列化tag                                    | Golang	|request、response | json:"name,optional" |             |
+    | path | 路由path值，配合路由使用                         | go-zero                 | request              | path:"id"   |
+    | form | form标签，form 消息体和quertString的值均会被绑定 | go-zero                 | request              | form:"name" |
+
+
 > 说明：这里你可以理解为golang中type定义的变体，对于struct省去了`struct`关键字。
 
 语法示例
@@ -269,11 +276,11 @@ service $serviceName {
 * `returns`为固定字段，定义一个请求有响应体的标志
 * `$key`生成服务的附加属性定义，为了扩展，从语法角度来讲支持任何满足【ID命名规则】的值，但目前在生成时仅用到了一下值
 
-    |key|描述|
-    |:---:|:---:|
-    |jwt|声明该组协议需要生成jwt鉴权代码|
-    |middleware|声明该组协议需要生成中间件代码|
-    |group|标志该组协议生成代码需要按照group定义的value值进行文件夹分组|
+|    key     |                             描述                             |
+|:----------:|:------------------------------------------------------------:|
+|    jwt     |               声明该组协议需要生成jwt鉴权代码                |
+| middleware |                声明该组协议需要生成中间件代码                |
+|   group    | 标志该组协议生成代码需要按照group定义的value值进行文件夹分组 |
 
 * `$value`生成服务的附加属性值
 * `$serviceName`定义服务名称

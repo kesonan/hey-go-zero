@@ -191,6 +191,10 @@ $ vi ~/.zshrc [5]
 
 在末尾添加`alias etl=etcdctl`，然后`source ~/.zshrc`即可。
 
+# Postman安装(可选)
+为了方便接口测试，这里建议大家安装一下postman工具，方便后期api调试，当然你也可以使用其他工具如`curl`、Idea工具中的
+`Http Client`等，选择一个你熟悉的工具即可。
+
 # End
 
 上一篇 [《首页》](../index.md)

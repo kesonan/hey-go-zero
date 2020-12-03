@@ -18,5 +18,6 @@
 ![user-flow](../../resource/user-flow.svg)
 
 
-# 源码
-[点我进入用户模块](../../service/user)
+# 隧道
+* [用户模块目录](../../service/user)
+    * [用户模块api说明文档](../../service/user/api/readme.md)
