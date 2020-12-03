@@ -43,7 +43,7 @@ type (
 )
 
 @server(
-	group: noAuth
+	group: noauth
 )
 service user-api {
 	@handler register
@@ -55,7 +55,7 @@ service user-api {
 
 @server(
 	jwt: Auth
-	group: Auth
+	group: auth
 )
 service user-api {
 	@handler userInfo

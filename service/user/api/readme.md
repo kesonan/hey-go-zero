@@ -60,7 +60,7 @@ service
     )
     
     @server(
-        group: noAuth
+        group: noauth
     )
     service user-api {
         @handler register
@@ -72,7 +72,7 @@ service
     
     @server(
         jwt: Auth
-        group: Auth
+        group: auth
     )
     service user-api {
         @handler userInfo
@@ -114,18 +114,18 @@ $ tree
 │   ├── config
 │   │   └── config.go
 │   ├── handler
-│   │   ├── Auth
+│   │   ├── auth
 │   │   │   ├── userinfoedithandler.go
 │   │   │   └── userinfohandler.go
-│   │   ├── noAuth
+│   │   ├── noauth
 │   │   │   ├── loginhandler.go
 │   │   │   └── registerhandler.go
 │   │   └── routes.go
 │   ├── logic
-│   │   ├── Auth
+│   │   ├── auth
 │   │   │   ├── userinfoeditlogic.go
 │   │   │   └── userinfologic.go
-│   │   └── noAuth
+│   │   └── noauth
 │   │       ├── loginlogic.go
 │   │       └── registerlogic.go
 │   ├── svc
@@ -134,6 +134,7 @@ $ tree
 │       └── types.go
 ├── user.api
 └── user.go
+
 ```
 
 > 说明： 这个时候进入`user.go`文件查看，发现代码有多处地方报红
