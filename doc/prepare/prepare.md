@@ -4,7 +4,10 @@
     * Goctl工具
     * Protobuf
     * Protoc-gen-go
-    * Etcd(本地)
+    * Etcd
+    * Redis
+    * Postman
+    
 
 # Go语言环境
 * [下载](https://golang.org/dl/) Go安装包
@@ -190,6 +193,35 @@ $ vi ~/.zshrc [5]
 > [5] zsh安装可自行google，当然你也可以使用bash,这里可自行google去设置别名。
 
 在末尾添加`alias etl=etcdctl`，然后`source ~/.zshrc`即可。
+
+# Redis安装
+
+```
+$ brew install redis
+```
+```text
+==> Downloading https://mirrors.ustc.edu.cn/homebrew-bottles/bottles/redis-6.0.6.mojave.bottle.tar.gz
+######################################################################## 100.0%
+==> Pouring redis-6.0.6.mojave.bottle.tar.gz
+==> Caveats
+To have launchd start redis now and restart at login:
+  brew services start redis
+Or, if you don't want/need a background service you can just run:
+  redis-server /usr/local/etc/redis.conf
+==> Summary
+🍺  /usr/local/Cellar/redis/6.0.6: 13 files, 3.8MB
+```
+
+查看redis版本
+
+```shell script
+$ redis-cli -v
+```
+```text
+redis-cli 6.0.6
+```
+
+>说明：windows安装教程请[下载安装](https://redis.io/download)
 
 # Postman安装(可选)
 为了方便接口测试，这里建议大家安装一下postman工具，方便后期api调试，当然你也可以使用其他工具如`curl`、Idea工具中的

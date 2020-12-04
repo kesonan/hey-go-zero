@@ -21,4 +21,4 @@ Goctl是基于[go-zero](https://github.com/tal-tech/go-zero) 项目的一款微�
 
 上一篇 [《准备工作》](prepare.md)
 
-下一篇 [《服务目录结构介绍》](./service-structure.md)
+下一篇 [《服务目录》](./service-structure.md)

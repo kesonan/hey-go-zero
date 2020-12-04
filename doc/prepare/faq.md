@@ -103,6 +103,6 @@ goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
   
 # End
 
-上一篇 [《Proto使用说明》](./proto-rule.md)
+上一篇 [《数据库准备工作》](./db-create.md)
 
-下一篇 [《创建工程》](./project-create.md)
+下一篇 [《需求说明》](../requirement/summary.md)

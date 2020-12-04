@@ -2,33 +2,30 @@
 package types
 
 type UserInfoReply struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Gender   string `json:"gender"`
-	Birthday string `json:"birthday"`
-	Role     string `json:"role"`
+	Id     int64  `json:"id"`
+	Name   string `json:"name"`
+	Gender string `json:"gender"`
+	Role   string `json:"role"`
 }
 
 type UserInfoReq struct {
-	Name     string `json:"name,optional"`
-	Gender   string `json:"gender,optional"`
-	Birthday string `json:"birthday"`
+	Name   string `json:"name,optional"`
+	Gender string `json:"gender,optional"`
 }
 
 type UserLoginReply struct {
-	Id       string `json:"id"`
+	Id       int64  `json:"id"`
 	Token    string `json:"token"`
 	ExpireAt int64  `json:"expireAt"`
 }
 
 type UserLoginReq struct {
 	Username string `json:"username"`
-	Passowrd string `json:"passowrd"`
-	Role     string `json:"role,options=student|teacher"`
+	Passowrd string `json:"password"`
 }
 
 type UserRegisterReq struct {
 	Username string `json:"username"`
-	Passowrd string `json:"passowrd"`
+	Passowrd string `json:"password"`
 	Role     string `json:"role,options=student|teacher"`
 }

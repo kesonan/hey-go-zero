@@ -12,21 +12,15 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package config
+package errorx
 
 import (
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/rest"
+	"fmt"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
-	}
-	Mysql struct {
-		DataSource string
-	}
-	CacheRedis cache.CacheConf
+func TestNewCodeError(t *testing.T) {
+	ce := NewCodeError(200, "OK")
+	assert.Equal(t, fmt.Sprintf("CodeError: code-%d,msg-%s", 200, "OK"), ce.Error())
 }

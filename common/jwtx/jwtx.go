@@ -12,21 +12,30 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package config
+package jwtx
 
 import (
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/rest"
+	"encoding/json"
+	"net/http"
+
+	"hey-go-zero/common/errorx"
+
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
-type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
+const JwtWithUserKey = "id"
+
+func GetUserId(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	v := r.Context().Value(JwtWithUserKey)
+	jn, ok := v.(json.Number)
+	if !ok {
+		httpx.Error(w, errorx.NewDescriptionError("用户信息获取失败"))
+		return 0, false
 	}
-	Mysql struct {
-		DataSource string
+	vInt, err := jn.Int64()
+	if err != nil {
+		httpx.Error(w, errorx.NewDescriptionError(err.Error()))
+		return 0, false
 	}
-	CacheRedis cache.CacheConf
+	return vInt, true
 }

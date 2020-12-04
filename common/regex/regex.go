@@ -12,21 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package config
+package regex
 
-import (
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/rest"
+import "regexp"
+
+const (
+	Username = `(?m)[a-zA-Z_0-9]{6,20}`
+	Password = `(?m)[a-zA-Z_0-9.-]{6,18}`
 )
 
-type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
-	}
-	Mysql struct {
-		DataSource string
-	}
-	CacheRedis cache.CacheConf
+func Match(s, reg string) bool {
+	r := regexp.MustCompile(reg)
+	ret := r.FindString(s)
+	return ret == s && r.MatchString(s)
 }

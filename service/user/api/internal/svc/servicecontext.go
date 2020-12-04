@@ -16,14 +16,20 @@ package svc
 
 import (
 	"hey-go-zero/service/user/api/internal/config"
+	"hey-go-zero/service/user/model"
+
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 
 type ServiceContext struct {
-	Config config.Config
+	Config    config.Config
+	UserModel model.UserModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	return &ServiceContext{
-		Config: c,
+		Config:    c,
+		UserModel: model.NewUserModel(conn, c.CacheRedis),
 	}
 }

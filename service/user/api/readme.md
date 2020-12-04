@@ -37,7 +37,7 @@ service
         }
     
         UserLoginReply {
-            Id string `json:"id"`
+            Id int64 `json:"id"`
             Token string `json:"token"`
             ExpireAt int64 `json:"expireAt"`
         }
@@ -45,7 +45,7 @@ service
     
     type (
         UserInfoReply {
-            Id string `json:"id"`
+            Id int64 `json:"id"`
             Name string `json:"name"`
             Gender string `json:"gender"`
             Birthday string `json:"birthday"`
@@ -79,7 +79,7 @@ service
         get /api/user/info/self returns (UserInfoReply)
     
         @handler userInfoEdit
-        post /path (UserInfoReq)
+        post /api/user/info/edit (UserInfoReq)
     }
     ```
 
@@ -220,4 +220,551 @@ Content-Length: 0
 
 > 注意：windows版本在终端用`curl`进行http请求，且请求体为`json`类型时，需要将json进行转义。
 
+# 创建user表
+
+```mysql
+CREATE TABLE `user` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '用户id',
+  `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '登录用户名',
+  `password` varchar(255) COLLATE utf8mb4_general_ci NOT NULL COMMENT '登录用户密码',
+  `name` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户姓名',
+  `gender` tinyint(1) DEFAULT '0' COMMENT '用户性别 0-未知，1-男，2-女',
+  `role` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户角色 student-学生,teacher-教师，manager-管理员',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uni_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+>说明：请将上述create ddl 复制后自行创建，这里就不过多演示了。
+
+# 生成带redis缓存的usermodel代码
+首先进入`service/user`目录，右键`user`文件夹进入终端
+
+```shell script
+$ goctl model mysql datasource -url="ugozero@tcp(127.0.0.1:3306)/heygozero" -table="user" -c -dir ./model
+```
+```text
+Done.
+```
+
+生成完毕后会在`service/user`目录下会多一个`model`文件夹，其包含内容如下:
+
+```text
+model
+├── usermodel.go
+└── vars.go
+```
+
+# 添加regex.go
+在`hey-go-zero`下添加一个`common/regex`和`common/codeerror`文件夹，
+
+创建`regex.go`文件，填充代码:
+
+```go
+package regex
+
+import "regexp"
+
+const (
+	Username = `(?m)[a-zA-Z_0-9]{6,20}`
+	Password = `(?m)[a-zA-Z_0-9.-]{6,18}`
+)
+
+func Match(s, reg string) bool {
+	r := regexp.MustCompile(reg)
+	ret := r.FindString(s)
+	return ret == s
+}
+```
+
+创建`codeerror.go`文件，填充代码
+
+```go
+package codeerror
+
+import "fmt"
+
+const defaultCode = 1001
+
+type CodeError struct {
+	code uint
+	msg  string
+}
+
+func NewCodeError(code uint, msg string) *CodeError {
+	return &CodeError{
+		code: code,
+		msg:  msg,
+	}
+}
+
+func NewDefaultError(msg string) *CodeError {
+	return NewCodeError(defaultCode, msg)
+}
+
+func (c *CodeError) Error() string {
+	return fmt.Sprintf("CodeError: code-%d,msg-%s", c.code, c.msg)
+}
+```
+
+目录树
+
+```
+hey-go-zero
+├── common
+│   ├── codeerror
+│   │   └── codeerror.go
+│   └── regex
+│       └── regex.go
+
+```
+
+# 添加codeerror.go
+在`hey-go-zero`下添加一个`common/codeerror`文件夹，并创建`codeerror.go`文件，填充代码:
+
+# 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
+* 编打开`service/user/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
+
+    ```go
+    package config
+    
+    import (
+    	"github.com/tal-tech/go-zero/core/stores/cache"
+    	"github.com/tal-tech/go-zero/rest"
+    )
+    
+    type Config struct {
+    	rest.RestConf
+    	Auth struct {
+    		AccessSecret string
+    		AccessExpire int64
+    	}
+    	Mysql struct {
+    		DataSource string
+    	}
+    	CacheRedis cache.CacheConf
+    }
+    ```
+  
+* 打开`service/user/api/etc/user-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
+
+    ```yaml
+    Name: user-api
+    Host: 0.0.0.0
+    Port: 8888
+    Auth:
+      AccessSecret: 1e69481b-7405-4369-9ce3-9aaffdb56ce3
+      AccessExpire: 3600
+    Mysql:
+      DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+    CacheRedis:
+      - Host: 127.0.0.1:6379
+        Type: node
+    ```
+
+    >说明： 我本地redis没有设置密码，因此没有配置`Password`配置项。
+
+# ServiceContext增加`UserModel`资源
+打开`service/user/api/internal/svc/servicecontext.go`，添加`UserModel`依赖。
+
+```go
+package svc
+
+import (
+	"hey-go-zero/service/user/api/internal/config"
+	"hey-go-zero/service/user/model"
+
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
+)
+
+type ServiceContext struct {
+	Config    config.Config
+	UserModel model.UserModel
+}
+
+func NewServiceContext(c config.Config) *ServiceContext {
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	return &ServiceContext{
+		Config:    c,
+		UserModel: model.NewUserModel(conn, c.CacheRedis),
+	}
+}
+```
 # 填充user api服务逻辑
+
+### 准备
+在填充注册逻辑之前建议先阅读[自定义错误处理](../../../doc/gozero/http-error.md)，在下面的逻辑中我们将会用到。
+
+### 添加`error.go`文件
+在`service/user/api/internal/logic`下创建`error.go`文件，添加自定义错误类型
+
+```go
+var (
+	InvalidUsername = errorx.NewInvalidParameterError("username")
+	InvalidPassword = errorx.NewInvalidParameterError("password")
+)
+```
+
+### 填充注册逻辑
+打开`service/user/api/internal/logic/noauth/registerlogic.go`文件，编辑`Register`方法：
+
+```go
+if !regex.Match(req.Username, regex.Username) {
+    return logic.InvalidUsername
+}
+
+if !regex.Match(req.Passowrd, regex.Password) {
+    return logic.InvalidPassword
+}
+
+_, err := l.svcCtx.UserModel.FindOneByUsername(req.Username)
+switch err {
+case nil:
+    return errorx.NewDescriptionError("用户名已存在")
+case model.ErrNotFound:
+    _, err = l.svcCtx.UserModel.Insert(model.User{
+        Username: req.Username,
+        Password: req.Passowrd,
+        Role:     req.Role,
+    })
+    return err
+default:
+    return err
+}
+```
+
+启动redis
+
+```shell script
+$ redis-server
+```
+
+启动user api服务，访问注册协议。
+
+```shell script
+$ go run user.go
+```
+```text
+Starting server at 0.0.0.0:8888...
+```
+
+访问注册协议
+
+```shell script
+$ curl -i -X POST \
+    http://localhost:8888/api/user/register \
+    -H 'content-type: application/json' \
+    -d '{
+          "username":"songmeizi",
+          "password":"111111",
+          "role":"student"
+  }'
+```
+```text
+HTTP/1.1 200 OK
+Date: Fri, 04 Dec 2020 09:46:58 GMT
+Content-Length: 0
+```
+再次发起同样的请求你得到
+
+```text
+HTTP/1.1 406 Not Acceptable
+Content-Type: application/json
+Date: Fri, 04 Dec 2020 13:19:11 GMT
+Content-Length: 39
+
+{"code":-1,"desc":"用户名已存在"}
+```
+
+由于上述提示`用户名已存在`错误了，而且我们启用了redis缓存，如果不出意外的话，redis中已经有缓存了，分别为:
+* 唯一索引`username`缓存的`主键id`值
+* `主键id`缓存的用户行记录
+
+我们访问redis查看一下。
+
+```shell script
+$ 127.0.0.1:6379> get cache#User#username#songmeizi
+  "1"
+  127.0.0.1:6379> get cache#User#id#1
+  "{\"Username\":\"songmeizi\",\"Password\":\"111111\",\"Name\":\"\",\"Gender\":0,\"Role\":\"student\",\"CreateTime\":\"2020-12-04T17:46:58+08:00\",\"UpdateTime\":\"2020-12-04T17:46:58+08:00\",\"Id\":1}"
+  127.0.0.1:6379>
+```
+
+> 说明：在`usermodel.go`中可查看到redis key prefix，具体拼接规则，你可以自行看一下`usermodel.go`中代码。
+> 如：
+> ```text
+> cacheUserUsernamePrefix = "cache#User#username#"
+> cacheUserIdPrefix       = "cache#User#id#"
+> ```
+
+> 恭喜！🎉🎉🎉 走到这里你已经成功的实现了第一条协议，你有没有发现你写得最多的代码是`Register`函数，填充注册逻辑，而持久层、缓存层及handler相关的代码你都没有编写，甚至你可能都不知道用到了这些代码。
+用`go-zero`实现一个服务就是这么easy！接下来还有很长的路要走，不过大部分工作都像写`注册`代码一样，你只负责填充逻辑就行，其他的就交给`goctl`，请保持耐心，我们继续！
+
+## 创建`jwtx.go`
+在`hey-go-zero/common`创建一个文件夹`jwtx`和文件`jwtx.go`,添加如下代码
+
+```go
+package jwtx
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"hey-go-zero/common/errorx"
+
+	"github.com/tal-tech/go-zero/rest/httpx"
+)
+
+const JwtWithUserKey = "id"
+
+func GetUserId(w http.ResponseWriter, r *http.Request) (int64, bool) {
+	v := r.Context().Value(JwtWithUserKey)
+	jn, ok := v.(json.Number)
+	if !ok {
+		httpx.Error(w, errorx.NewDescriptionError("用户信息获取失败"))
+		return 0, false
+	}
+	vInt, err := jn.Int64()
+	if err != nil {
+		httpx.Error(w, errorx.NewDescriptionError(err.Error()))
+		return 0, false
+	}
+	return vInt, true
+}
+```
+
+### 填充登录逻辑
+打开`service/user/api/internal/logic/noauth/loginlogic.go`文件，在`Login`中添加如下代码逻辑：
+
+```go
+if !regex.Match(req.Username, regex.Username) {
+    return nil, logic.InvalidUsername
+}
+
+if !regex.Match(req.Passowrd, regex.Password) {
+    return nil, logic.InvalidPassword
+}
+
+resp, err := l.svcCtx.UserModel.FindOneByUsername(req.Username)
+switch err {
+case nil:
+    if resp.Password!=req.Passowrd{
+        return nil,errorx.NewDescriptionError("密码错误")
+    }
+    
+    jwtToken,expireAt, err := l.generateJwtToken(resp.Id,time.Now().Unix())
+    if err != nil {
+        return nil, err
+    }
+    
+    return &types.UserLoginReply{
+        Id:       resp.Id,
+        Token:    jwtToken,
+        ExpireAt: expireAt,
+    }, nil
+case model.ErrNotFound:
+    return nil, errorx.NewDescriptionError("用户名未注册")
+default:
+    return nil, err
+}
+```
+`generateJwtToken`方法：
+
+```go
+func (l *LoginLogic) generateJwtToken(id int64, iat int64) (string, int64, error) {
+	claims := make(jwt.MapClaims)
+	expireAt := iat + l.svcCtx.Config.Auth.AccessExpire
+	claims["exp"] = expireAt
+	claims["iat"] = iat
+	claims[jwtx.JwtWithUserKey] = id
+	token := jwt.New(jwt.SigningMethodHS256)
+	token.Claims = claims
+	jwtToken,err:=token.SignedString([]byte(l.svcCtx.Config.Auth.AccessSecret))
+	if err != nil {
+		return "", 0,err
+	}
+	return jwtToken,expireAt,nil
+}
+```
+
+启动服务，请求一下登录协议
+
+```shell script
+$ curl -i -X POST \
+    http://localhost:8888/api/user/login \
+    -H 'content-type: application/json' \
+    -d '{
+  	"username":"songmeizi",
+  	"password":"111111"
+  }'
+```
+```text
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Fri, 04 Dec 2020 14:18:07 GMT
+Content-Length: 178
+
+{"id":1,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwODcsImlhdCI6MTYwNzA5MTQ4NywiaWQiOjF9.unYrI5J7o67J-FVltzbx6rH0P1LhYj13MlcYhcHcL9Y","expireAt":1607095087}
+```
+
+### 获取用户信息
+和上面一样，找到对应的logic文件`service/user/api/internal/logic/auth/userinfologic.go`，找到`UserInfo`方法，发现这里没有请求参数，那么我们通过什么样式获取到当前请求户用户的
+用户信息呢？
+* 编辑`service/user/api/internal/logic/error.go`,添加代码
+    ```go
+    ErrUserNotFound = errorx.NewDescriptionError("用户不存在")
+    ```
+* 给`UserInfo`方法中添加请求参数`id int64`
+* 找到`UserInfo`的调用方`service/user/api/internal/handler/auth/userinfohandler.go`,在方法`UserInfoHandler`中添加代码
+    ```go
+    id,ok:=jwtx.GetUserId(w,r)
+    if !ok{
+        return
+    }
+    ```
+    完整代码
+    ```go
+    func UserInfoHandler(ctx *svc.ServiceContext) http.HandlerFunc {
+    	return func(w http.ResponseWriter, r *http.Request) {
+    		id,ok:=jwtx.GetUserId(w,r) // add
+    		if !ok{ // add
+    			return // add
+    		} // add
+    
+    		l := logic.NewUserInfoLogic(r.Context(), ctx)
+    		resp, err := l.UserInfo(id) // edit
+    		if err != nil {
+    			httpx.Error(w, err)
+    		} else {
+    			httpx.OkJson(w, resp)
+    		}
+    	}
+    }
+    ```
+* 在`userinfologic`添加全局定义
+    ```go
+    var genderConvert = map[int64]string{
+    	0: "未知",
+    	1: "男",
+    	2: "女",
+    }
+    ```
+* 填充`UserInfo`方法逻辑
+    
+    ```go
+    resp, err := l.svcCtx.UserModel.FindOne(id)
+    switch err {
+    case nil:
+        return &types.UserInfoReply{
+            Id:     resp.Id,
+            Name:   resp.Name,
+            Gender: genderConvert[resp.Gender],
+            Role:   resp.Role,
+        }, nil
+    case model.ErrNotFound:
+        return nil, logic.ErrUserNotFound
+    default:
+        return nil, err
+    }
+    ```
+  
+### 编辑用户信息
+和上面一样，找到对应的logic文件`service/user/api/internal/logic/auth/userinfoeditlogic.go`，找到`UserInfoEdit`方法，这里和【获取用户信息一样】均需要在handler层获取到用户id，并传递到logic层。
+最终代码如下:
+
+* 找到`UserInfoEdit`的调用方`service/user/api/internal/handler/auth/userinfoedithandler.go`,在方法`UserInfoEditHandler`中添加代码
+    ```go
+    id,ok:=jwtx.GetUserId(w,r)
+    if !ok{
+        return
+    }
+    ```
+    完整代码
+    ```go
+    func UserInfoEditHandler(ctx *svc.ServiceContext) http.HandlerFunc {
+    	return func(w http.ResponseWriter, r *http.Request) {
+    		var req types.UserInfoReq
+    		if err := httpx.Parse(r, &req); err != nil {
+    			httpx.Error(w, err)
+    			return
+    		}
+    
+    		id,ok:=jwtx.GetUserId(w,r) // add
+    		if !ok{ // add
+    			return  // add
+    		}   // add
+    		
+    		l := logic.NewUserInfoEditLogic(r.Context(), ctx)
+    		err := l.UserInfoEdit(id,req)   // edit
+    		if err != nil {
+    			httpx.Error(w, err)
+    		} else {
+    			httpx.Ok(w)
+    		}
+    	}
+    }
+    ```
+* 填充`UserInfoEdit`方法逻辑
+    
+    ```go
+    // 全量更新，允许字段为空
+    resp, err := l.svcCtx.UserModel.FindOne(id)
+    switch err {
+    case nil:
+        resp.Name = req.Name
+        switch req.Gender {
+        case "男":
+            resp.Gender = 1
+        case "女":
+            resp.Gender = 2
+        default:
+            return errorx.NewInvalidParameterError("gender")
+        }
+        return l.svcCtx.UserModel.Update(*resp)
+    case model.ErrNotFound:
+        return logic.ErrUserNotFound
+    default:
+        return err
+    }
+    ```
+  
+最后请求来验证一下以上两条协议
+
+* 修改用户信息
+    ```shell script
+    $ curl -i -X POST \
+        http://localhost:8888/api/user/info/edit \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
+        -H 'content-type: application/json' \
+        -d '{
+          "name": "松妹子",
+          "gender": "男"
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Fri, 04 Dec 2020 15:07:59 GMT
+    Content-Length: 0
+    ```
+
+* 获取用户信息
+
+    ```shell script
+    $ curl -i -X GET \
+        http://localhost:8888/api/user/info/self \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
+        -H 'content-type: application/json' 
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Fri, 04 Dec 2020 15:09:22 GMT
+    Content-Length: 59
+    
+    {"id":1,"name":"松妹子","gender":"男","role":"student"}
+    ```
+  
+ # 结尾
+ 本章节完。

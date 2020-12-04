@@ -17,6 +17,7 @@ package handler
 import (
 	"net/http"
 
+	"hey-go-zero/common/jwtx"
 	"hey-go-zero/service/user/api/internal/logic/auth"
 	"hey-go-zero/service/user/api/internal/svc"
 	"hey-go-zero/service/user/api/internal/types"
@@ -32,8 +33,13 @@ func UserInfoEditHandler(ctx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
+		id, ok := jwtx.GetUserId(w, r)
+		if !ok {
+			return
+		}
+
 		l := logic.NewUserInfoEditLogic(r.Context(), ctx)
-		err := l.UserInfoEdit(req)
+		err := l.UserInfoEdit(id, req)
 		if err != nil {
 			httpx.Error(w, err)
 		} else {

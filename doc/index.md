@@ -23,6 +23,10 @@
 * go version go1.15.1 darwin/amd64
 * Goland 2020.2.3
 * goctl version 20201125 darwin/amd64
+* Etcd Version: 3.4.13
+* Redis-cli 6.0.6
+* Protoc: libprotoc 3.14.0
+* Protoc-gen-go
 
 # 常见概念介绍
 `$` 代表一个shell命令/可执行文件开始，如
@@ -34,13 +38,17 @@ $ echo hello
 `Goctl` go-zero自带的代码生产工具
 
 # 目录
+* [首页](../readme.md)
 * [准备工作](./prepare)
     * [准备工作](./prepare/prepare.md)
     * [Goctl介绍](./prepare/goctl-intro.md)
-    * [《服务目录结构介绍》](./prepare/service-structure.md)
-    * [《Api语法介绍》](./prepare/api-grammar.md)
-    * [《Proto使用说明》](./prepare/proto-rule.md)
+    * [服务目录](./prepare/service-structure.md)
+    * [Api语法介绍](./prepare/api-grammar.md)
+    * [Proto使用说明](./prepare/proto-rule.md)
+    * [创建工程](./prepare/project-create.md)
+    * [数据库准备工作](./prepare/db-create.md)
+    * [常见FAQ集合](./prepare/faq.md)
     
 * [需求概况](./requirement)
-    * [需求概况](./requirement/summary.md)
+    * [需求说明](./requirement/summary.md)
 

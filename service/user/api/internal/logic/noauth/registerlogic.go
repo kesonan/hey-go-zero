@@ -17,8 +17,12 @@ package logic
 import (
 	"context"
 
+	"hey-go-zero/common/errorx"
+	"hey-go-zero/common/regex"
+	"hey-go-zero/service/user/api/internal/logic"
 	"hey-go-zero/service/user/api/internal/svc"
 	"hey-go-zero/service/user/api/internal/types"
+	"hey-go-zero/service/user/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -38,7 +42,26 @@ func NewRegisterLogic(ctx context.Context, svcCtx *svc.ServiceContext) RegisterL
 }
 
 func (l *RegisterLogic) Register(req types.UserRegisterReq) error {
-	// todo: add your logic here and delete this line
+	if !regex.Match(req.Username, regex.Username) {
+		return logic.InvalidUsername
+	}
 
-	return nil
+	if !regex.Match(req.Passowrd, regex.Password) {
+		return logic.InvalidPassword
+	}
+
+	_, err := l.svcCtx.UserModel.FindOneByUsername(req.Username)
+	switch err {
+	case nil:
+		return errorx.NewDescriptionError("用户名已存在")
+	case model.ErrNotFound:
+		_, err = l.svcCtx.UserModel.Insert(model.User{
+			Username: req.Username,
+			Password: req.Passowrd,
+			Role:     req.Role,
+		})
+		return err
+	default:
+		return err
+	}
 }

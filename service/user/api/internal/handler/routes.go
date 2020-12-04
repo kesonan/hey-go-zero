@@ -36,7 +36,7 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 			},
 			{
 				Method:  http.MethodPost,
-				Path:    "/path",
+				Path:    "/api/user/info/edit",
 				Handler: auth.UserInfoEditHandler(serverCtx),
 			},
 		},

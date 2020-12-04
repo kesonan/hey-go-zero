@@ -18,12 +18,14 @@ import (
 	"flag"
 	"fmt"
 
+	"hey-go-zero/common/errorx"
 	"hey-go-zero/service/user/api/internal/config"
 	"hey-go-zero/service/user/api/internal/handler"
 	"hey-go-zero/service/user/api/internal/svc"
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
 var configFile = flag.String("f", "etc/user-api.yaml", "the config file")
@@ -37,6 +39,9 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
+
+	errHandler := errorx.Handler{}
+	httpx.SetErrorHandler(errHandler.Handle())
 
 	handler.RegisterHandlers(server, ctx)
 

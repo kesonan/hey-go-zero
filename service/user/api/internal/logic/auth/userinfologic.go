@@ -17,11 +17,19 @@ package logic
 import (
 	"context"
 
+	"hey-go-zero/service/user/api/internal/logic"
 	"hey-go-zero/service/user/api/internal/svc"
 	"hey-go-zero/service/user/api/internal/types"
+	"hey-go-zero/service/user/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
+
+var genderConvert = map[int64]string{
+	0: "未知",
+	1: "男",
+	2: "女",
+}
 
 type UserInfoLogic struct {
 	logx.Logger
@@ -37,8 +45,19 @@ func NewUserInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) UserInfoL
 	}
 }
 
-func (l *UserInfoLogic) UserInfo() (*types.UserInfoReply, error) {
-	// todo: add your logic here and delete this line
-
-	return &types.UserInfoReply{}, nil
+func (l *UserInfoLogic) UserInfo(id int64) (*types.UserInfoReply, error) {
+	resp, err := l.svcCtx.UserModel.FindOne(id)
+	switch err {
+	case nil:
+		return &types.UserInfoReply{
+			Id:     resp.Id,
+			Name:   resp.Name,
+			Gender: genderConvert[resp.Gender],
+			Role:   resp.Role,
+		}, nil
+	case model.ErrNotFound:
+		return nil, logic.ErrUserNotFound
+	default:
+		return nil, err
+	}
 }

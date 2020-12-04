@@ -17,8 +17,11 @@ package logic
 import (
 	"context"
 
+	"hey-go-zero/common/errorx"
+	"hey-go-zero/service/user/api/internal/logic"
 	"hey-go-zero/service/user/api/internal/svc"
 	"hey-go-zero/service/user/api/internal/types"
+	"hey-go-zero/service/user/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -37,8 +40,24 @@ func NewUserInfoEditLogic(ctx context.Context, svcCtx *svc.ServiceContext) UserI
 	}
 }
 
-func (l *UserInfoEditLogic) UserInfoEdit(req types.UserInfoReq) error {
-	// todo: add your logic here and delete this line
-
-	return nil
+func (l *UserInfoEditLogic) UserInfoEdit(id int64, req types.UserInfoReq) error {
+	// 全量更新，允许字段为空
+	resp, err := l.svcCtx.UserModel.FindOne(id)
+	switch err {
+	case nil:
+		resp.Name = req.Name
+		switch req.Gender {
+		case "男":
+			resp.Gender = 1
+		case "女":
+			resp.Gender = 2
+		default:
+			return errorx.NewInvalidParameterError("gender")
+		}
+		return l.svcCtx.UserModel.Update(*resp)
+	case model.ErrNotFound:
+		return logic.ErrUserNotFound
+	default:
+		return err
+	}
 }

@@ -1,66 +1,63 @@
 info(
-	title: "用户系统"
-	desc: "用户模块api描述文件，详细需求说明请见hey-go-zero/doc/requirement/user.md"
-	author: "songmeizi"
-	version: "1.0"
+    title: "用户系统"
+    desc: "用户模块api描述文件，详细需求说明请见hey-go-zero/doc/requirement/user.md"
+    author: "songmeizi"
+    version: "1.0"
 )
 
 type (
-	UserRegisterReq {
-		Username string `json:"username"`
-		Passowrd string `json:"passowrd"`
-		// 定义用户角色，仅允许student|teacher两个枚举值。
-		Role string `json:"role,options=student|teacher"`
-	}
-	
-	UserLoginReq {
-		Username string `json:"username"`
-		Passowrd string `json:"passowrd"`
-		Role string `json:"role,options=student|teacher"`
-	}
-	
-	UserLoginReply {
-		Id string `json:"id"`
-		Token string `json:"token"`
-		ExpireAt int64 `json:"expireAt"`
-	}
+    UserRegisterReq {
+        Username string `json:"username"`
+        Passowrd string `json:"password"`
+        // 定义用户角色，仅允许student|teacher两个枚举值。
+        Role string `json:"role,options=student|teacher"`
+    }
+
+    UserLoginReq {
+        Username string `json:"username"`
+        Passowrd string `json:"password"`
+    }
+
+    UserLoginReply {
+        Id int64 `json:"id"`
+        Token string `json:"token"`
+        ExpireAt int64 `json:"expireAt"`
+    }
 )
 
 type (
-	UserInfoReply {
-		Id string `json:"id"`
-		Name string `json:"name"`
-		Gender string `json:"gender"`
-		Birthday string `json:"birthday"`
-		Role string `json:"role"`
-	}
-	
-	UserInfoReq {
-		Name string `json:"name,optional"`
-		Gender string `json:"gender,optional"`
-		Birthday string `json:"birthday"`
-	}
+    UserInfoReply {
+        Id int64 `json:"id"`
+        Name string `json:"name"`
+        Gender string `json:"gender"`
+        Role string `json:"role"`
+    }
+
+    UserInfoReq {
+        Name string `json:"name,optional"`
+        Gender string `json:"gender,optional"`
+    }
 )
 
 @server(
-	group: noauth
+    group: noauth
 )
 service user-api {
-	@handler register
-	post /api/user/register (UserRegisterReq)
-	
-	@handler login
-	post /api/user/login (UserLoginReq) returns (UserLoginReply)
+    @handler register
+    post /api/user/register (UserRegisterReq)
+
+    @handler login
+    post /api/user/login (UserLoginReq) returns (UserLoginReply)
 }
 
 @server(
-	jwt: Auth
-	group: auth
+    jwt: Auth
+    group: auth
 )
 service user-api {
-	@handler userInfo
-	get /api/user/info/self returns (UserInfoReply)
-	
-	@handler userInfoEdit
-	post /path (UserInfoReq)
+    @handler userInfo
+    get /api/user/info/self returns (UserInfoReply)
+
+    @handler userInfoEdit
+    post /api/user/info/edit (UserInfoReq)
 }

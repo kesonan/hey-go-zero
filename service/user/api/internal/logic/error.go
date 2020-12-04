@@ -12,21 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package config
+package logic
 
-import (
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/rest"
+import "hey-go-zero/common/errorx"
+
+var (
+	InvalidUsername = errorx.NewInvalidParameterError("username")
+	InvalidPassword = errorx.NewInvalidParameterError("password")
+	ErrUserNotFound = errorx.NewDescriptionError("用户不存在")
 )
-
-type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
-	}
-	Mysql struct {
-		DataSource string
-	}
-	CacheRedis cache.CacheConf
-}

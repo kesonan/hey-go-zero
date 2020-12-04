@@ -34,6 +34,6 @@ hey-go-zero
 
 # End
 
-上一篇 [《常见FAQ集合》](../prepare/faq.md)
+上一篇 [《Proto使用说明》](./proto-rule.md)
 
-下一篇 [《需求说明》](../requirement/summary.md)
+下一篇 [《数据库准备工作》](./db-create.md)

@@ -12,21 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package config
+package regex
 
 import (
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/rest"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
-type Config struct {
-	rest.RestConf
-	Auth struct {
-		AccessSecret string
-		AccessExpire int64
-	}
-	Mysql struct {
-		DataSource string
-	}
-	CacheRedis cache.CacheConf
+func TestMatch(t *testing.T) {
+	assert.True(t, Match("songmeizi", Username))
+	assert.True(t, Match("songmeizi.", Password))
+	assert.False(t, Match("song", Username))
+	assert.False(t, Match("song", Password))
+	assert.False(t, Match("song*", Password))
+	assert.False(t, Match("songmeizisongmeizi1", Password))
+	assert.False(t, Match("songmeizisongmeizi123", Username))
+	assert.False(t, Match("", Username))
+	assert.False(t, Match("", Password))
 }
