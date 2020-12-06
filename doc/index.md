@@ -13,6 +13,9 @@
 * Go
 * IDE(Goland、Atom、VSCode)
 * Goctl
+* Etcd
+* Redis
+* Protoc&Protoc-gen-go
 * Postman
 
 # 集成依赖
