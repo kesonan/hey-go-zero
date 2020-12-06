@@ -765,6 +765,26 @@ Content-Length: 178
     
     {"id":1,"name":"松妹子","gender":"男","role":"student"}
     ```
-  
+ 
+ # 本章节贡献者
+ * [songmeizi](https://github.com/songmeizi)
+ 
+ # 技术点总结
+ * [正则表达式](https://github.com/ziishaned/learn-regex)
+ * [JSON Web Tokens](https://jwt.io/)
+ * [Mysql](https://www.mysql.com/)
+ * [Redis](https://redis.io/)
+ 
+ # 相关推荐
+ * [go-zero微服务框架](https://github.com/tal-tech/go-zero)
+ * [超好用的正则在线表达式在线验证网站](https://regex101.com/)
+ * [jwt中文社区](http://jwtio.online/)
+ * [mysql中文文档](https://www.mysqlzh.com/)
+ * [redis命令参考](http://redisdoc.com/index.html)
+ 
  # 结尾
  本章节完。
+ 
+ 如发现任何错误请通过Issue发起问题修复申请。
+ 
+ 
