@@ -32,10 +32,12 @@ func GetUserId(w http.ResponseWriter, r *http.Request) (int64, bool) {
 		httpx.Error(w, errorx.NewDescriptionError("用户信息获取失败"))
 		return 0, false
 	}
+
 	vInt, err := jn.Int64()
 	if err != nil {
 		httpx.Error(w, errorx.NewDescriptionError(err.Error()))
 		return 0, false
 	}
+
 	return vInt, true
 }

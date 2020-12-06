@@ -15,12 +15,30 @@
 package errorx
 
 import (
-	"fmt"
-	"github.com/stretchr/testify/assert"
+	"errors"
+	"net/http"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCodeError(t *testing.T) {
-	ce := NewCodeError(200, "OK")
-	assert.Equal(t, fmt.Sprintf("CodeError: code-%d,msg-%s", 200, "OK"), ce.Error())
+func TestHandler_Handle(t *testing.T) {
+	errorCode := 1001
+	desc := "Something Wrong"
+	ce := NewCodeError(errorCode, desc)
+	handler := Handler{}
+	fn := handler.Handle()
+	statusCode, v := fn(ce)
+	assert.Equal(t, http.StatusNotAcceptable, statusCode)
+	assert.Equal(t, v, ErrorBody{errorCode, desc})
+
+	statusCode, v = fn(NewDescriptionError(desc))
+	assert.Equal(t, http.StatusNotAcceptable, statusCode)
+	assert.Equal(t, v, ErrorBody{defaultCode, desc})
+
+	statusCode, v = fn(NewInvalidParameterError("user"))
+	assert.Equal(t, http.StatusNotAcceptable, statusCode)
+
+	statusCode, v = fn(errors.New(desc))
+	assert.Equal(t, http.StatusInternalServerError, statusCode)
 }

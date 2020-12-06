@@ -89,5 +89,6 @@ func (l *LoginLogic) generateJwtToken(id int64, iat int64) (string, int64, error
 	if err != nil {
 		return "", 0, err
 	}
+
 	return jwtToken, expireAt, nil
 }
