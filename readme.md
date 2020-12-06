@@ -3,6 +3,7 @@
 
 ![go-zero](https://img.shields.io/badge/Github-go--zero-brightgreen?link=https://github.com/tal-tech/go-zero&logo=github)
 ![license](https://img.shields.io/badge/license-Apache-blue?link=https://github.com/songmeizi/hey-go-zero/blob/master/LICENSE&logo=apache)
+![Go](https://github.com/songmeizi/hey-go-zero/workflows/Go/badge.svg)
 
 # 项目介绍
 hey-go-zero是基于[go-zero](https://github.com/tal-tech/go-zero) 的一个示例工程，通过一个简单的`选课`
