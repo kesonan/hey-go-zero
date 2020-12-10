@@ -1,4 +1,4 @@
-# user创建步骤
+# user-api创建步骤
 通过本文档介绍我在编写演示项目的每一步流程，这样不至于你在阅读的时候忽然发现，怎么到了这里，那里是怎么回事。
 
 > 说明：本文档对新手比较适用，如果已经很熟悉go-zero、goctl的同学可以跳过本文档。
@@ -77,7 +77,6 @@ service
     @server(
     	jwt: Auth
     	group: auth
-    	middleware: UserCheck
     )
     service user-api {
     	@handler userInfo
@@ -113,40 +112,38 @@ $ tree
 ```
 ```text
 .
-├── etc
+├── etc // yaml配置文件
 │   └── user-api.yaml
-├── internal
-│   ├── config
+├── internal // 仅user api服务可访问的内部文件
+│   ├── config  // yaml配置文件对应的结构定义
 │   │   └── config.go
-│   ├── handler
-│   │   ├── auth
+│   ├── handler // http.HandlerFunc实现
+│   │   ├── auth   // 文件分组1，来自user.api定义中的group值
 │   │   │   ├── userinfoedithandler.go
 │   │   │   └── userinfohandler.go
-│   │   ├── noauth
+│   │   ├── noauth  // 文件分组2，来自user.api定义中的group值
 │   │   │   ├── loginhandler.go
 │   │   │   └── registerhandler.go
-│   │   └── routes.go
-│   ├── logic
-│   │   ├── auth
+│   │   └── routes.go // 路由定义
+│   ├── logic // 业务逻辑
+│   │   ├── auth // 文件分组1，来自user.api定义中的group值
 │   │   │   ├── userinfoeditlogic.go
 │   │   │   └── userinfologic.go
-│   │   ├── error.go
-│   │   └── noauth
+│   │   └── noauth // 文件分组2，来自user.api定义中的group值
 │   │       ├── loginlogic.go
 │   │       └── registerlogic.go
-│   ├── middleware
-│   │   └── usercheckmiddleware.go
-│   ├── svc
+│   ├── svc // 资源依赖
 │   │   └── servicecontext.go
 │   └── types
 │       └── types.go
 ├── readme.md
-├── user.api
-└── user.go
+├── user.api // api定义
+└── user.go // main入口
 
 ```
 
-> 说明： 这个时候进入`user.go`文件查看，发现代码有多处地方报红
+> 说明：上述目录中的注释是为了大家能够快速知道该目录结构的用途，是后期我加入的，实际生成的tree不会带注释和readme.md文件。
+> 另：这个时候进入`user.go`文件查看，发现代码有多处地方报红
 > 解决方案：在终端进入`user/api`执行
 > ```
 > $ go test -race ./...
@@ -288,33 +285,118 @@ func Match(s, reg string) bool {
 }
 ```
 
-创建`codeerror.go`文件，填充代码
+# 使用自定义错误
+在`hey-go-zero`下添加一个`common/codeerror`文件夹，并创建`codeerror.go`文件，填充代码:
 
 ```go
-package codeerror
+package errorx
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
-const defaultCode = 1001
+const defaultCode = -1
 
-type CodeError struct {
-	code uint
-	msg  string
+type Handler struct{}
+
+type ErrorBody struct {
+	Code int    `json:"code"`
+	Desc string `json:"desc"`
 }
 
-func NewCodeError(code uint, msg string) *CodeError {
-	return &CodeError{
-		code: code,
-		msg:  msg,
+func (h *Handler) Handle() func(error) (int, interface{}) {
+	return func(err error) (int, interface{}) {
+		switch v := err.(type) {
+		case *CodeError:
+			return http.StatusNotAcceptable, ErrorBody{
+				Code: v.code,
+				Desc: v.desc,
+			}
+		case *DescriptionError:
+			return http.StatusNotAcceptable, ErrorBody{
+				Code: defaultCode,
+				Desc: v.desc,
+			}
+		case *InvalidParameterError:
+			return http.StatusNotAcceptable, ErrorBody{
+				Code: defaultCode,
+				Desc: fmt.Sprintf("参数错误: %v", v.parameter),
+			}
+		default:
+			return http.StatusInternalServerError, ErrorBody{
+				Code: defaultCode,
+				Desc: v.Error(),
+			}
+		}
 	}
 }
 
-func NewDefaultError(msg string) *CodeError {
-	return NewCodeError(defaultCode, msg)
+type CodeError struct {
+	code int
+	desc string
 }
 
-func (c *CodeError) Error() string {
-	return fmt.Sprintf("CodeError: code-%d,msg-%s", c.code, c.msg)
+func NewCodeError(code int, desc string) *CodeError {
+	return &CodeError{
+		code: code,
+		desc: desc,
+	}
+}
+
+func (e *CodeError) Error() string {
+	return e.desc
+}
+
+type DescriptionError struct {
+	desc string
+}
+
+func NewDescriptionError(desc string) *DescriptionError {
+	return &DescriptionError{
+		desc: desc,
+	}
+}
+
+func (e *DescriptionError) Error() string {
+	return e.desc
+}
+
+type InvalidParameterError struct {
+	parameter string
+}
+
+func NewInvalidParameterError(parameter string) *InvalidParameterError {
+	return &InvalidParameterError{
+		parameter: parameter,
+	}
+}
+
+func (e *InvalidParameterError) Error() string {
+	return e.parameter
+}
+```
+
+在main函数文件`service/user/api/user.go`中使用自定义错误，代码
+
+```go
+func main() {
+	flag.Parse()
+
+	var c config.Config
+	conf.MustLoad(*configFile, &c)
+
+	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
+
+	errHandler := errorx.Handler{} // add 自定义错误
+	httpx.SetErrorHandler(errHandler.Handle()) // add 自定义错误
+
+	handler.RegisterHandlers(server, ctx)
+
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
 }
 ```
 
@@ -330,8 +412,6 @@ hey-go-zero
 
 ```
 
-# 添加codeerror.go
-在`hey-go-zero`下添加一个`common/codeerror`文件夹，并创建`codeerror.go`文件，填充代码:
 
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/user/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
@@ -755,7 +835,68 @@ if xUserId != fmt.Sprintf("%v", v) {
         return err
     }
     ```
-  
+### 添加用户校验中间件
+对于获取用户信息，编辑用户信息，我们需要使用jwt鉴权，这样才能知道当前请求的用户是否合法，除此之外，我们还需要传递被修改人的用户id，
+而对于这样的需求，用户的鉴权信息中的用户信息必须要和当前操作人的id是一个人，我们可以通过中间件去做一层业务拦截，由于考虑到后续也有这种
+场景，这里就将用户信息校验逻辑方在`common`目录下。
+
+在`common`下创建`middleware`文件夹，并添加`usercheckmiddleware.go`文件，填入代码：
+
+```go
+package middleware
+
+import (
+	"fmt"
+	"net/http"
+
+	"hey-go-zero/common/errorx"
+	"hey-go-zero/common/jwtx"
+
+	"github.com/tal-tech/go-zero/rest/httpx"
+)
+
+func UserCheck(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		v := r.Context().Value(jwtx.JwtWithUserKey)
+		xUserId := r.Header.Get("x-user-id")
+		if len(xUserId) == 0 {
+			httpx.Error(w, errorx.NewDescriptionError("x-user-id不能为空"))
+			return
+		}
+
+		if xUserId != fmt.Sprintf("%v", v) {
+			httpx.Error(w, errorx.NewDescriptionError("用户信息不一致"))
+			return
+		}
+		next(w, r)
+	}
+}
+```
+
+在main函数文件`service/user/api/user.go`中使用中间件
+
+```go
+func main() {
+	flag.Parse()
+
+	var c config.Config
+	conf.MustLoad(*configFile, &c)
+
+	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
+
+	errHandler := errorx.Handler{}
+	httpx.SetErrorHandler(errHandler.Handle())
+
+	handler.RegisterHandlers(server, ctx)
+
+	server.Use(middleware.UserCheck) // add: 添加用户信息校验中间件
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
+}
+```
+
 最后请求来验证一下以上两条协议
 
 * 修改用户信息

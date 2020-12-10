@@ -1,0 +1,82 @@
+info(
+	title: "课程管理api"
+	desc: "描述课程添加、编辑、删除、查看等协议"
+	author: "松妹子"
+	version: "V1.0"
+)
+
+type (
+	Course {
+		Name string `json:"name"`
+		Description string `json:"description,optional"`
+		Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
+		// 性别限制，0-不限，1-男，2-女
+		GenderLimit int `json:"genderLimit,options=0|1|2"`
+		// 可选参数，如果不传则代表不限制人数
+		MemberLimit *MemberLimit `json:"memberLimit,optional"`
+		StartTime int64 `json:"startTime"`
+		// 学分
+		Credit int `json:"credit,range=(0,6]"`
+	}
+	MemberLimit {
+		// 男生限制人数 <=0：不限
+		MeleCount int `json:"meleCount"`
+		// 女生限制人数 <=0：不限
+		FemaleCount int `json:"femaleCount"`
+	}
+	AddCourseReq {
+		Course
+	}
+	
+	EditCourseReq {
+		Id int64 `path:"id"`
+		Course
+	}
+	
+	DeleteCourseReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReply {
+		Id int64 `json:"id"`
+		Course
+	}
+	
+	CourseListReq {
+		Page int `json:"page,range=(0:]"`
+		Size int `json:"size,range=(0:]"`
+		CursorId int64 `json:"cursorId,optional"`
+	}
+	
+	CourseListReply {
+		CurrentPage int `json:"currentPage"`
+		Size int `json:"size"`
+		CursorId int64 `json:"cursorId"`
+		HasMore bool `json:"hasMore"`
+		List []*Course `json:"list"`
+	}
+)
+
+@server(
+	jwt: Auth
+)
+service course-api {
+	@handler addCourse
+	post /api/course/add (AddCourseReq)
+	
+	@handler editCourse
+	post /api/course/edit/:id (EditCourseReq)
+	
+	@handler deleteCourse
+	post /api/course/delete/:id (DeleteCourseReq)
+	
+	@handler getCourseInfo
+	get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
+	
+	@handler getCourseList
+	get /api/course/list (CourseListReq) returns (CourseListReply)
+}

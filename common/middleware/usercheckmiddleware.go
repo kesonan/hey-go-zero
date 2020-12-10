@@ -12,24 +12,31 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package svc
+package middleware
 
 import (
-	"hey-go-zero/service/user/api/internal/config"
-	"hey-go-zero/service/user/model"
+	"fmt"
+	"net/http"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"hey-go-zero/common/errorx"
+	"hey-go-zero/common/jwtx"
+
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
-type ServiceContext struct {
-	Config    config.Config
-	UserModel model.UserModel
-}
+func UserCheck(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		v := r.Context().Value(jwtx.JwtWithUserKey)
+		xUserId := r.Header.Get("x-user-id")
+		if len(xUserId) == 0 {
+			httpx.Error(w, errorx.NewDescriptionError("x-user-id不能为空"))
+			return
+		}
 
-func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	return &ServiceContext{
-		Config:    c,
-		UserModel: model.NewUserModel(conn, c.CacheRedis),
+		if xUserId != fmt.Sprintf("%v", v) {
+			httpx.Error(w, errorx.NewDescriptionError("用户信息不一致"))
+			return
+		}
+		next(w, r)
 	}
 }

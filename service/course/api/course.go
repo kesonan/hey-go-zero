@@ -18,18 +18,15 @@ import (
 	"flag"
 	"fmt"
 
-	"hey-go-zero/common/errorx"
-	"hey-go-zero/common/middleware"
-	"hey-go-zero/service/user/api/internal/config"
-	"hey-go-zero/service/user/api/internal/handler"
-	"hey-go-zero/service/user/api/internal/svc"
+	"hey-go-zero/service/course/api/internal/config"
+	"hey-go-zero/service/course/api/internal/handler"
+	"hey-go-zero/service/course/api/internal/svc"
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/rest"
-	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
-var configFile = flag.String("f", "etc/user-api.yaml", "the config file")
+var configFile = flag.String("f", "etc/course-api.yaml", "the config file")
 
 func main() {
 	flag.Parse()
@@ -41,12 +38,8 @@ func main() {
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
 
-	errHandler := errorx.Handler{}
-	httpx.SetErrorHandler(errHandler.Handle())
-
 	handler.RegisterHandlers(server, ctx)
 
-	server.Use(middleware.UserCheck)
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
 }

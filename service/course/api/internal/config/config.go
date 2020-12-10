@@ -12,24 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package svc
+package config
 
 import (
-	"hey-go-zero/service/user/api/internal/config"
-	"hey-go-zero/service/user/model"
-
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/core/stores/cache"
+	"github.com/tal-tech/go-zero/rest"
 )
 
-type ServiceContext struct {
-	Config    config.Config
-	UserModel model.UserModel
-}
-
-func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	return &ServiceContext{
-		Config:    c,
-		UserModel: model.NewUserModel(conn, c.CacheRedis),
+type Config struct {
+	rest.RestConf
+	Auth struct {
+		AccessSecret string
+		AccessExpire int64
 	}
+	Mysql struct {
+		DataSource string
+	}
+	CacheRedis cache.CacheConf
 }

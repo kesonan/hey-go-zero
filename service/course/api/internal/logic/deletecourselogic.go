@@ -12,24 +12,33 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package svc
+package logic
 
 import (
-	"hey-go-zero/service/user/api/internal/config"
-	"hey-go-zero/service/user/model"
+	"context"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"hey-go-zero/service/course/api/internal/svc"
+	"hey-go-zero/service/course/api/internal/types"
+
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
-type ServiceContext struct {
-	Config    config.Config
-	UserModel model.UserModel
+type DeleteCourseLogic struct {
+	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
 }
 
-func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	return &ServiceContext{
-		Config:    c,
-		UserModel: model.NewUserModel(conn, c.CacheRedis),
+func NewDeleteCourseLogic(ctx context.Context, svcCtx *svc.ServiceContext) DeleteCourseLogic {
+	return DeleteCourseLogic{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
 	}
+}
+
+func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
+	// todo: add your logic here and delete this line
+
+	return nil
 }

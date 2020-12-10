@@ -4,7 +4,7 @@ English|[简体中文](readme.md)
 ![go-zero](https://img.shields.io/badge/Github-go--zero-brightgreen?link=https://github.com/tal-tech/go-zero&logo=github)
 ![license](https://img.shields.io/badge/License-Apache-blue?link=https://github.com/songmeizi/hey-go-zero/blob/master/LICENSE&logo=apache)
 ![Go](https://github.com/songmeizi/hey-go-zero/workflows/Go/badge.svg)
-![Go](https://img.shields.io/badge/Goctl-V20201125-red)
+![Goctl](https://img.shields.io/badge/Goctl-V20201125-red)
 
 # Introduction
 hey-go-zero is an example project based on [go-zero](https://github.com/tal-tech/go-zero), through a simple course selection

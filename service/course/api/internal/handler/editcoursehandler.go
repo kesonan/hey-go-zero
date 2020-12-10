@@ -12,24 +12,32 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package svc
+package handler
 
 import (
-	"hey-go-zero/service/user/api/internal/config"
-	"hey-go-zero/service/user/model"
+	"net/http"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"hey-go-zero/service/course/api/internal/logic"
+	"hey-go-zero/service/course/api/internal/svc"
+	"hey-go-zero/service/course/api/internal/types"
+
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
-type ServiceContext struct {
-	Config    config.Config
-	UserModel model.UserModel
-}
+func editCourseHandler(ctx *svc.ServiceContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req types.EditCourseReq
+		if err := httpx.Parse(r, &req); err != nil {
+			httpx.Error(w, err)
+			return
+		}
 
-func NewServiceContext(c config.Config) *ServiceContext {
-	conn := sqlx.NewMysql(c.Mysql.DataSource)
-	return &ServiceContext{
-		Config:    c,
-		UserModel: model.NewUserModel(conn, c.CacheRedis),
+		l := logic.NewEditCourseLogic(r.Context(), ctx)
+		err := l.EditCourse(req)
+		if err != nil {
+			httpx.Error(w, err)
+		} else {
+			httpx.Ok(w)
+		}
 	}
 }
