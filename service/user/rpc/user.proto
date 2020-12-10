@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package user;
+
+message UserReq {
+  // 用户id
+  int64 id = 1;
+}
+
+enum gender {
+  UNKNOWN = 0;
+  MALE = 1;
+  FEMALE = 2;
+}
+
+message UserReply {
+  int64 id = 1;
+  string name = 2;
+  // 性别，0-未知，1-男，2-女
+  gender gender = 3;
+  // 角色，teacher-教师，student-学生
+  string role = 4;
+}
+
+message IdsReq {
+  repeated int64 ids = 1;
+}
+
+message UserListReply {
+  repeated UserReply list = 1;
+}
+
+service UserService {
+  // findone
+  rpc findOne(UserReq) returns (UserReply);
+  // findByIds
+  rpc findByIds(IdsReq) returns (UserListReply);
+}

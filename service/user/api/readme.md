@@ -22,64 +22,69 @@ service
 * 修改user.api文件内容为
 
     ```text
-    type (
-        UserRegisterReq {
-            Username string `json:"username"`
-            Passowrd string `json:"passowrd"`
-            // 定义用户角色，仅允许student|teacher两个枚举值。
-            Role string `json:"role,options=student|teacher"`
-        }
-    
-        UserLoginReq {
-            Username string `json:"username"`
-            Passowrd string `json:"passowrd"`
-            Role string `json:"role,options=student|teacher"`
-        }
-    
-        UserLoginReply {
-            Id int64 `json:"id"`
-            Token string `json:"token"`
-            ExpireAt int64 `json:"expireAt"`
-        }
+    info(
+    	title: "用户系统"
+    	desc: "用户模块api描述文件，详细需求说明请见hey-go-zero/doc/requirement/user.md"
+    	author: "songmeizi"
+    	version: "1.0"
     )
     
     type (
-        UserInfoReply {
-            Id int64 `json:"id"`
-            Name string `json:"name"`
-            Gender string `json:"gender"`
-            Birthday string `json:"birthday"`
-            Role string `json:"role"`
-        }
+    	UserRegisterReq {
+    		Username string `json:"username"`
+    		Passowrd string `json:"password"`
+    		// 定义用户角色，仅允许student|teacher两个枚举值。
+    		Role string `json:"role,options=student|teacher"`
+    	}
+    	
+    	UserLoginReq {
+    		Username string `json:"username"`
+    		Passowrd string `json:"password"`
+    	}
+    	
+    	UserLoginReply {
+    		Id int64 `json:"id"`
+    		Token string `json:"token"`
+    		ExpireAt int64 `json:"expireAt"`
+    	}
+    )
     
-        UserInfoReq {
-            Name string `json:"name,optional"`
-            Gender string `json:"gender,optional"`
-            Birthday string `json:"birthday"`
-        }
+    type (
+    	UserInfoReply {
+    		Id int64 `json:"id"`
+    		Name string `json:"name"`
+    		Gender string `json:"gender"`
+    		Role string `json:"role"`
+    	}
+    	
+    	UserInfoReq {
+    		Name string `json:"name,optional"`
+    		Gender string `json:"gender,optional"`
+    	}
     )
     
     @server(
-        group: noauth
+    	group: noauth
     )
     service user-api {
-        @handler register
-        post /api/user/register (UserRegisterReq)
-    
-        @handler login
-        post /api/user/login (UserLoginReq) returns (UserLoginReply)
+    	@handler register
+    	post /api/user/register (UserRegisterReq)
+    	
+    	@handler login
+    	post /api/user/login (UserLoginReq) returns (UserLoginReply)
     }
     
     @server(
-        jwt: Auth
-        group: auth
+    	jwt: Auth
+    	group: auth
+    	middleware: UserCheck
     )
     service user-api {
-        @handler userInfo
-        get /api/user/info/self returns (UserInfoReply)
-    
-        @handler userInfoEdit
-        post /api/user/info/edit (UserInfoReq)
+    	@handler userInfo
+    	get /api/user/info/self returns (UserInfoReply)
+    	
+    	@handler userInfoEdit
+    	post /api/user/info/edit (UserInfoReq)
     }
     ```
 
@@ -125,13 +130,17 @@ $ tree
 │   │   ├── auth
 │   │   │   ├── userinfoeditlogic.go
 │   │   │   └── userinfologic.go
+│   │   ├── error.go
 │   │   └── noauth
 │   │       ├── loginlogic.go
 │   │       └── registerlogic.go
+│   ├── middleware
+│   │   └── usercheckmiddleware.go
 │   ├── svc
 │   │   └── servicecontext.go
 │   └── types
 │       └── types.go
+├── readme.md
 ├── user.api
 └── user.go
 
@@ -608,7 +617,24 @@ Content-Length: 178
 
 {"id":1,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwODcsImlhdCI6MTYwNzA5MTQ4NywiaWQiOjF9.unYrI5J7o67J-FVltzbx6rH0P1LhYj13MlcYhcHcL9Y","expireAt":1607095087}
 ```
+### 填充中间件校验逻辑
+为什么需要这么一段逻辑？为了防止其他用户拿到jwt token进行非法访问，另外一种情况就是web端在切换账号时jwt token未及时清理缓存导致
+另一个用户拿着前一个用户的jwt token来访问，因此在这一步可以有效防止后续不严谨逻辑的发生。
 
+打开文件`service/user/api/internal/middleware/usercheckmiddleware.go`添加
+```go
+v := r.Context().Value(jwtx.JwtWithUserKey)
+xUserId := r.Header.Get("x-user-id")
+if len(xUserId)==0{
+    httpx.Error(w,errorx.NewDescriptionError("x-user-id不能为空"))
+    return
+}
+
+if xUserId != fmt.Sprintf("%v", v) {
+    httpx.Error(w, errorx.NewDescriptionError("用户信息不一致"))
+    return
+}
+```
 ### 获取用户信息
 和上面一样，找到对应的logic文件`service/user/api/internal/logic/auth/userinfologic.go`，找到`UserInfo`方法，发现这里没有请求参数，那么我们通过什么样式获取到当前请求户用户的
 用户信息呢？
@@ -737,6 +763,7 @@ Content-Length: 178
     $ curl -i -X POST \
         http://localhost:8888/api/user/info/edit \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
+        -H 'x-user-id: 1' \
         -H 'content-type: application/json' \
         -d '{
           "name": "松妹子",
@@ -755,7 +782,8 @@ Content-Length: 178
     $ curl -i -X GET \
         http://localhost:8888/api/user/info/self \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
-        -H 'content-type: application/json' 
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 1'
     ```
     ```text
     HTTP/1.1 200 OK
@@ -786,5 +814,10 @@ Content-Length: 178
  本章节完。
  
  如发现任何错误请通过Issue发起问题修复申请。
+ 
+你可能会浏览 
+* [课程模块](../../../doc/requirement/course.md)
+* [选课模块](../../../doc/requirement/selection.md)
+* [排课模块](../../../doc/requirement/schedule.md)
  
  
