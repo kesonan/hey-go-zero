@@ -1,9 +1,9 @@
 # hey-go-zero
 简体中文|[English](./readme_en.md)
 
-![go-zero](https://img.shields.io/badge/Github-go--zero-brightgreen?link=https://github.com/tal-tech/go-zero&logo=github)
-![license](https://img.shields.io/badge/License-Apache-blue?link=https://github.com/songmeizi/hey-go-zero/blob/master/LICENSE&logo=apache)
-![Go](https://github.com/songmeizi/hey-go-zero/workflows/Go/badge.svg)
+[![go-zero](https://img.shields.io/badge/Github-go--zero-brightgreen?logo=github)](https://github.com/tal-tech/go-zero)
+[![license](https://img.shields.io/badge/License-Apache-blue?logo=apache)](https://github.com/songmeizi/hey-go-zero/blob/master/LICENSE)
+[![Go](https://github.com/songmeizi/hey-go-zero/workflows/Go/badge.svg)](https://github.com/songmeizi/hey-go-zero/actions)
 ![Goctl](https://img.shields.io/badge/Goctl-V20201125-red)
 
 # 项目介绍
