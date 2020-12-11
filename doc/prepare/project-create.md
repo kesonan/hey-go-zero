@@ -1,12 +1,12 @@
 # 创建工程
-在前面我们已经对[软件环境](../index.md)进行了说明，本次演示项目是
+在前面我们已经对[软件环境](../index.md)进行了说明，本次演示项目环境是以
 * mac OS
 * Goland
 * Go Module
 * Goctl
 * Idea Goctl插件
 
-形式展开进行的，因此我们操作均在Goland+Terminal混合进行，如果准备工作还没做好的话，请先阅读一下[概要说明](../index.md)和[准备工作](../prepare/prepare.md) 章节。
+形式展开进行的，除此之外我们操作会在Goland+Terminal混合进行，如果准备工作还没做好的话，请先阅读一下[概要说明](../index.md)和[准备工作](../prepare/prepare.md) 章节。
 
 # New
 * 打开Goland->`File`->`New`->`Project...`
