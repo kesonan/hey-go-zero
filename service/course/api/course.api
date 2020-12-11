@@ -13,14 +13,14 @@ type (
 		// 性别限制，0-不限，1-男，2-女
 		GenderLimit int `json:"genderLimit,options=0|1|2"`
 		// 可选参数，如果不传则代表不限制人数
-		MemberLimit *MemberLimit `json:"memberLimit,optional"`
+		MemberLimit MemberLimit `json:"memberLimit,optional"`
 		StartTime int64 `json:"startTime"`
 		// 学分
 		Credit int `json:"credit,range=(0,6]"`
 	}
 	MemberLimit {
 		// 男生限制人数 <=0：不限
-		MeleCount int `json:"meleCount"`
+		MaleCount int `json:"maleCount"`
 		// 女生限制人数 <=0：不限
 		FemaleCount int `json:"femaleCount"`
 	}
@@ -63,6 +63,7 @@ type (
 
 @server(
 	jwt: Auth
+	middleware: AuthMiddleware
 )
 service course-api {
 	@handler addCourse

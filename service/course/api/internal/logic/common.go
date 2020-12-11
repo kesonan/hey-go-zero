@@ -15,33 +15,21 @@
 package logic
 
 import (
-	"context"
-
-	"hey-go-zero/common/errorx"
-	"hey-go-zero/service/course/api/internal/svc"
 	"hey-go-zero/service/course/api/internal/types"
-
-	"github.com/tal-tech/go-zero/core/logx"
+	"hey-go-zero/service/course/model"
 )
 
-type DeleteCourseLogic struct {
-	logx.Logger
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
-}
-
-func NewDeleteCourseLogic(ctx context.Context, svcCtx *svc.ServiceContext) DeleteCourseLogic {
-	return DeleteCourseLogic{
-		Logger: logx.WithContext(ctx),
-		ctx:    ctx,
-		svcCtx: svcCtx,
+func convertFromDbToLogic(data model.Course) types.Course {
+	return types.Course{
+		Name:        data.Name,
+		Description: data.Description,
+		Classify:    data.Classify,
+		GenderLimit: int(data.GenderLimit),
+		MemberLimit: types.MemberLimit{
+			MaleCount:   int(data.MaleLimit),
+			FemaleCount: int(data.FemaleLimit),
+		},
+		StartTime: data.StartTime,
+		Credit:    int(data.Credit),
 	}
-}
-
-func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
-	if req.Id <= 0 {
-		return errorx.NewInvalidParameterError("id")
-	}
-
-	return l.svcCtx.CourseModel.Delete(req.Id)
 }

@@ -36,7 +36,7 @@ type (
     }
     MemberLimit {
         // 男生限制人数 <=0：不限
-        MeleCount int `json:"meleCount"`
+        MaleCount int `json:"maleCount"`
         // 女生限制人数 <=0：不限
         FemaleCount int `json:"femaleCount"`
     }
@@ -79,6 +79,7 @@ type (
 
 @server(
     jwt: Auth
+    middleware: AuthMiddleware
 )
 service course-api {
     @handler addCourse
@@ -120,27 +121,29 @@ service course-api {
   
 ```text
 course/api
-├── course.api  // api定义文件
-├── course.go   // main函数入口文件
-├── etc // yaml配置文件
+├── course.api
+├── course.go
+├── etc
 │   └── course-api.yaml
 ├── internal
-│   ├── config  // yaml配置对应的结构定义
+│   ├── config
 │   │   └── config.go
-│   ├── handler // http.HandlerFunc实现
+│   ├── handler
 │   │   ├── addcoursehandler.go
 │   │   ├── deletecoursehandler.go
 │   │   ├── editcoursehandler.go
 │   │   ├── getcourseinfohandler.go
 │   │   ├── getcourselisthandler.go
-│   │   └── routes.go // 路由
-│   ├── logic // 业务逻辑代码
+│   │   └── routes.go
+│   ├── logic
 │   │   ├── addcourselogic.go
 │   │   ├── deletecourselogic.go
 │   │   ├── editcourselogic.go
 │   │   ├── getcourseinfologic.go
 │   │   └── getcourselistlogic.go
-│   ├── svc // 资源依赖
+│   ├── middleware
+│   │   └── authmiddleware.go
+│   ├── svc
 │   │   └── servicecontext.go
 │   └── types
 │       └── types.go
@@ -191,6 +194,9 @@ model
 ├── coursemodel.go
 └── vars.go
 ```
+
+> 说明：本地生成的`goctl`版本为`goctl version 20201125 darwin/amd64`，早起版本生成出来的数值类型会有`int`，`int64`，而后续版本统一为`int64`了。
+
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/course/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
 
@@ -259,5 +265,234 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	}
 }
 ```
+
+# 添加用户信息校验中间件和自定义错误码
+由于在user api中已经添加过`UserCheck`用户信息校验中间件和[自定义错误码](../../../doc/gozero/http-error.md)了，这里就直接在main文件中使用即可。
+
+```go
+func main() {
+	flag.Parse()
+
+	var c config.Config
+	conf.MustLoad(*configFile, &c)
+
+	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
+
+	errHandler := errorx.Handler{} // add 自定义错误码
+	httpx.SetErrorHandler(errHandler.Handle()) // add 自定义错误码
+	
+	handler.RegisterHandlers(server, ctx)
+	server.Use(middleware.UserCheck) // add 用户信息校验中间件
+	
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
+}
+```
+
+# 填充课程逻辑
+
+## 创建error.go文件
+在`service/course/api/internal/logic`目录下新增`error.go`文件，填充代码
+
+```go
+var (
+	errCourseNotFound = errorx.NewDescriptionError("课程不存在")
+)
+```
+
+## 添加common.go
+在`service/course/api/internal/logic`目录下新增`common.go`文件，填充代码
+
+```go
+import (
+	"hey-go-zero/service/course/api/internal/types"
+	"hey-go-zero/service/course/model"
+)
+
+func convertFromDbToLogic(data model.Course) types.Course {
+	return types.Course{
+		Name:        data.Name,
+		Description: data.Description,
+		Classify:    data.Classify,
+		GenderLimit: int(data.GenderLimit),
+		MemberLimit: types.MemberLimit{
+			MaleCount:   int(data.MaleLimit),
+			FemaleCount: int(data.FemaleLimit),
+		},
+		StartTime: data.StartTime,
+		Credit:    int(data.Credit),
+	}
+}
+```
+
+## 添加课程
+* 文件位置：`service/course/api/internal/logic/addcourselogic.go`
+* 方法：`AddCourse`
+* 代码内容
+
+```go
+func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
+	if err := l.parametersCheck(req); err != nil {
+		return err
+	}
+
+	// 如果数量小于等于0则为不限
+	if req.MemberLimit.MaleCount < 0 {
+		req.MemberLimit.MaleCount = 0
+	}
+	if req.MemberLimit.FemaleCount < 0 {
+		req.MemberLimit.FemaleCount = 0
+	}
+
+	_, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
+	switch err {
+	case nil:
+		return errorx.NewDescriptionError("课程已存在")
+	case model.ErrNotFound:
+		_, err = l.svcCtx.CourseModel.Insert(model.Course{
+			Name:        req.Name,
+			Description: req.Description,
+			Classify:    req.Classify,
+			GenderLimit: int64(req.GenderLimit),
+			MaleLimit:   int64(req.MemberLimit.MaleCount),
+			FemaleLimit: int64(req.MemberLimit.FemaleCount),
+			StartTime:   req.StartTime,
+			Credit:      int64(req.Credit),
+		})
+		return err
+	default:
+		return err
+	}
+}
+
+func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
+	wordLimitErr := func(key string, limit int) error {
+		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+	}
+
+	if utf8.RuneCountInString(req.Name) > 20 {
+		return wordLimitErr("课程名称", 20)
+	}
+
+	if utf8.RuneCountInString(req.Description) > 500 {
+		return wordLimitErr("课程描述", 500)
+	}
+
+	now := time.Now().AddDate(0, 0, 1)
+	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+	if req.StartTime < validEarliestStartTime.Unix() {
+		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+	}
+
+	return nil
+}
+```
+
+> 说明：这里主要是带着大家熟悉api的开发，就不介绍具体详细业务逻辑了，感兴趣可以自己看代码，对代码中逻辑有争议我们这里也不争论。
+
+## 编辑课程
+* 文件位置：`service/course/api/internal/logic/editcourselogic.go`
+* 方法：`EditCourse`
+* 代码内容
+
+```go
+func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
+	if err := l.parametersCheck(req); err != nil {
+		return err
+	}
+	
+	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+	switch err {
+	case nil:
+		data.Name = req.Name
+		data.Description = req.Description
+		data.Classify = req.Classify
+		data.GenderLimit = int64(req.GenderLimit)
+		data.MaleLimit = int64(req.MemberLimit.MaleCount)
+		data.FemaleLimit = int64(req.MemberLimit.FemaleCount)
+		data.StartTime = req.StartTime
+		data.Credit = int64(req.Credit)
+		return l.svcCtx.CourseModel.Update(*data)
+	case model.ErrNotFound:
+		return errCourseNotFound
+	default:
+		return err
+	}
+}
+
+func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
+	wordLimitErr := func(key string, limit int) error {
+		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+	}
+
+	if req.Id < 0 {
+		return errorx.NewInvalidParameterError("id")
+	}
+
+	if utf8.RuneCountInString(req.Name) > 20 {
+		return wordLimitErr("课程名称", 20)
+	}
+
+	if utf8.RuneCountInString(req.Description) > 500 {
+		return wordLimitErr("课程描述", 500)
+	}
+
+	now := time.Now().AddDate(0, 0, 1)
+	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+	if req.StartTime < validEarliestStartTime.Unix() {
+		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+	}
+
+	return nil
+}
+```
+
+## 删除课程
+* 文件位置：`service/course/api/internal/logic/deletecourselogic.go`
+* 方法：`DeleteCourse`
+* 代码内容
+
+```go
+func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
+	if req.Id <= 0 {
+		return errorx.NewInvalidParameterError("id")
+	}
+
+	return l.svcCtx.CourseModel.Delete(req.Id)
+}
+```
+
+## 查看课程
+* 文件位置：`service/course/api/internal/logic/getcourseinfologic.go`
+* 方法：`GetCourseInfo`
+* 代码内容
+
+```go
+func (l *GetCourseInfoLogic) GetCourseInfo(req types.CourseInfoReq) (*types.CourseInfoReply, error) {
+	if req.Id <= 0 {
+		return nil, errorx.NewInvalidParameterError("id")
+	}
+
+	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+	switch err {
+	case nil:
+		return &types.CourseInfoReply{
+			Id: data.Id,
+			Course: convertFromDbToLogic(*data),
+		}, nil
+	case model.ErrNotFound:
+		return nil, errCourseNotFound
+	default:
+		return nil, err
+	}
+}
+```
+
+## 获取课程列表
+## 添加中间逻辑
+
+
 
 

@@ -16,9 +16,14 @@ package logic
 
 import (
 	"context"
+	"fmt"
+	"time"
+	"unicode/utf8"
 
+	"hey-go-zero/common/errorx"
 	"hey-go-zero/service/course/api/internal/svc"
 	"hey-go-zero/service/course/api/internal/types"
+	"hey-go-zero/service/course/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -38,7 +43,57 @@ func NewAddCourseLogic(ctx context.Context, svcCtx *svc.ServiceContext) AddCours
 }
 
 func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
-	// todo: add your logic here and delete this line
+	if err := l.parametersCheck(req); err != nil {
+		return err
+	}
+
+	// 如果数量小于等于0则为不限
+	if req.MemberLimit.MaleCount < 0 {
+		req.MemberLimit.MaleCount = 0
+	}
+	if req.MemberLimit.FemaleCount < 0 {
+		req.MemberLimit.FemaleCount = 0
+	}
+
+	_, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
+	switch err {
+	case nil:
+		return errorx.NewDescriptionError("课程已存在")
+	case model.ErrNotFound:
+		_, err = l.svcCtx.CourseModel.Insert(model.Course{
+			Name:        req.Name,
+			Description: req.Description,
+			Classify:    req.Classify,
+			GenderLimit: int64(req.GenderLimit),
+			MaleLimit:   int64(req.MemberLimit.MaleCount),
+			FemaleLimit: int64(req.MemberLimit.FemaleCount),
+			StartTime:   req.StartTime,
+			Credit:      int64(req.Credit),
+		})
+		return err
+	default:
+		return err
+	}
+}
+
+func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
+	wordLimitErr := func(key string, limit int) error {
+		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+	}
+
+	if utf8.RuneCountInString(req.Name) > 20 {
+		return wordLimitErr("课程名称", 20)
+	}
+
+	if utf8.RuneCountInString(req.Description) > 500 {
+		return wordLimitErr("课程描述", 500)
+	}
+
+	now := time.Now().AddDate(0, 0, 1)
+	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+	if req.StartTime < validEarliestStartTime.Unix() {
+		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+	}
 
 	return nil
 }

@@ -17,8 +17,10 @@ package logic
 import (
 	"context"
 
+	"hey-go-zero/common/errorx"
 	"hey-go-zero/service/course/api/internal/svc"
 	"hey-go-zero/service/course/api/internal/types"
+	"hey-go-zero/service/course/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -38,7 +40,20 @@ func NewGetCourseInfoLogic(ctx context.Context, svcCtx *svc.ServiceContext) GetC
 }
 
 func (l *GetCourseInfoLogic) GetCourseInfo(req types.CourseInfoReq) (*types.CourseInfoReply, error) {
-	// todo: add your logic here and delete this line
+	if req.Id <= 0 {
+		return nil, errorx.NewInvalidParameterError("id")
+	}
 
-	return &types.CourseInfoReply{}, nil
+	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+	switch err {
+	case nil:
+		return &types.CourseInfoReply{
+			Id:     data.Id,
+			Course: convertFromDbToLogic(*data),
+		}, nil
+	case model.ErrNotFound:
+		return nil, errCourseNotFound
+	default:
+		return nil, err
+	}
 }

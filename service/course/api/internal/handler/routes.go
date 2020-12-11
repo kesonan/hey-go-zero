@@ -11,33 +11,36 @@ import (
 
 func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 	engine.AddRoutes(
-		[]rest.Route{
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/course/add",
-				Handler: addCourseHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/course/edit/:id",
-				Handler: editCourseHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodPost,
-				Path:    "/api/course/delete/:id",
-				Handler: deleteCourseHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/api/course/:id",
-				Handler: getCourseInfoHandler(serverCtx),
-			},
-			{
-				Method:  http.MethodGet,
-				Path:    "/api/course/list",
-				Handler: getCourseListHandler(serverCtx),
-			},
-		},
+		rest.WithMiddlewares(
+			[]rest.Middleware{serverCtx.AuthMiddleware},
+			[]rest.Route{
+				{
+					Method:  http.MethodPost,
+					Path:    "/api/course/add",
+					Handler: addCourseHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/api/course/edit/:id",
+					Handler: editCourseHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodPost,
+					Path:    "/api/course/delete/:id",
+					Handler: deleteCourseHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/api/course/:id",
+					Handler: getCourseInfoHandler(serverCtx),
+				},
+				{
+					Method:  http.MethodGet,
+					Path:    "/api/course/list",
+					Handler: getCourseListHandler(serverCtx),
+				},
+			}...,
+		),
 		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
 	)
 }
