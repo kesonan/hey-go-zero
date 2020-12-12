@@ -20,6 +20,8 @@ message UserReply {
   gender gender = 3;
   // 角色，teacher-教师，student-学生
   string role = 4;
+  int64 createTime = 5;
+  int64 updateTime = 6;
 }
 
 message IdsReq {

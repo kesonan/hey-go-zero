@@ -49,15 +49,14 @@ type (
 	CourseListReq {
 		Page int `json:"page,range=(0:]"`
 		Size int `json:"size,range=(0:]"`
-		CursorId int64 `json:"cursorId,optional"`
 	}
 	
 	CourseListReply {
-		CurrentPage int `json:"currentPage"`
+		// 总条数
+		Total int `json:"total"`
+		// 当前返回数量，即list.length
 		Size int `json:"size"`
-		CursorId int64 `json:"cursorId"`
-		HasMore bool `json:"hasMore"`
-		List []*Course `json:"list"`
+		List []*CourseInfoReply `json:"list"`
 	}
 )
 

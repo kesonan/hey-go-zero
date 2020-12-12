@@ -38,7 +38,27 @@ func NewGetCourseListLogic(ctx context.Context, svcCtx *svc.ServiceContext) GetC
 }
 
 func (l *GetCourseListLogic) GetCourseList(req types.CourseListReq) (*types.CourseListReply, error) {
-	// todo: add your logic here and delete this line
+	total, err := l.svcCtx.CourseModel.FindAllCount()
+	if err != nil {
+		return nil, err
+	}
 
-	return &types.CourseListReply{}, nil
+	data, err := l.svcCtx.CourseModel.FindLimit(req.Page, req.Size)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*types.CourseInfoReply
+	for _, item := range data {
+		list = append(list, &types.CourseInfoReply{
+			Id:     item.Id,
+			Course: convertFromDbToLogic(*item),
+		})
+	}
+
+	return &types.CourseListReply{
+		Total: total,
+		Size:  len(list),
+		List:  list,
+	}, nil
 }

@@ -25,17 +25,14 @@ type CourseInfoReq struct {
 }
 
 type CourseListReply struct {
-	CurrentPage int       `json:"currentPage"`
-	Size        int       `json:"size"`
-	CursorId    int64     `json:"cursorId"`
-	HasMore     bool      `json:"hasMore"`
-	List        []*Course `json:"list"`
+	Total int                `json:"total"`
+	Size  int                `json:"size"`
+	List  []*CourseInfoReply `json:"list"`
 }
 
 type CourseListReq struct {
-	Page     int   `json:"page,range=(0:]"`
-	Size     int   `json:"size,range=(0:]"`
-	CursorId int64 `json:"cursorId,optional"`
+	Page int `json:"page,range=(0:]"`
+	Size int `json:"size,range=(0:]"`
 }
 
 type DeleteCourseReq struct {

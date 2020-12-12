@@ -15,87 +15,86 @@ course
 
 ```go
 info(
-    title: "课程管理api"
-    desc: "描述课程添加、编辑、删除、查看等协议"
-    author: "松妹子"
-    version: "V1.0"
+	title: "课程管理api"
+	desc: "描述课程添加、编辑、删除、查看等协议"
+	author: "松妹子"
+	version: "V1.0"
 )
 
 type (
-    Course {
-        Name string `json:"name"`
-        Description string `json:"description,optional"`
-        Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
-        // 姓名限制，0-不限，1-男，2-女
-        GenderLimit int `json:"genderLimit,options=0|1|2"`
-        // 可选参数，如果不传则代表不限制人数
-        MemberLimit *MemberLimit `json:"memberLimit,optional"`
-        StartTime int64 `json:"startTime"`
-        // 学分
-        Credit int `json:"credit,range=(0,6]"`
-    }
-    MemberLimit {
-        // 男生限制人数 <=0：不限
-        MaleCount int `json:"maleCount"`
-        // 女生限制人数 <=0：不限
-        FemaleCount int `json:"femaleCount"`
-    }
-    AddCourseReq {
-        Course
-    }
-
-    EditCourseReq {
-        Id int64 `path:"id"`
-        Course
-    }
-
-    DeleteCourseReq {
-        Id int64 `path:"id"`
-    }
-
-    CourseInfoReq {
-        Id int64 `path:"id"`
-    }
-
-    CourseInfoReply {
-        Id int64 `json:"id"`
-        Course
-    }
-
-    CourseListReq {
-        Page int `json:"page,range=(0:]"`
-        Size int `json:"size,range=(0:]"`
-        CursorId int64 `json:"cursorId,optional"`
-    }
-
-    CourseListReply {
-        CurrentPage int `json:"currentPage"`
-        Size int `json:"size"`
-        CursorId int64 `json:"cursorId"`
-        HasMore bool `json:"hasMore"`
-        List []*Course `json:"list"`
-    }
+	Course {
+		Name string `json:"name"`
+		Description string `json:"description,optional"`
+		Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
+		// 性别限制，0-不限，1-男，2-女
+		GenderLimit int `json:"genderLimit,options=0|1|2"`
+		// 可选参数，如果不传则代表不限制人数
+		MemberLimit MemberLimit `json:"memberLimit,optional"`
+		StartTime int64 `json:"startTime"`
+		// 学分
+		Credit int `json:"credit,range=(0,6]"`
+	}
+	MemberLimit {
+		// 男生限制人数 <=0：不限
+		MaleCount int `json:"maleCount"`
+		// 女生限制人数 <=0：不限
+		FemaleCount int `json:"femaleCount"`
+	}
+	AddCourseReq {
+		Course
+	}
+	
+	EditCourseReq {
+		Id int64 `path:"id"`
+		Course
+	}
+	
+	DeleteCourseReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReply {
+		Id int64 `json:"id"`
+		Course
+	}
+	
+	CourseListReq {
+		Page int `json:"page,range=(0:]"`
+		Size int `json:"size,range=(0:]"`
+	}
+	
+	CourseListReply {
+		// 总条数
+		Total int `json:"total"`
+		// 当前返回数量，即list.length
+		Size int `json:"size"`
+		List []*CourseInfoReply `json:"list"`
+	}
 )
 
 @server(
-    jwt: Auth
-    middleware: AuthMiddleware
+	jwt: Auth
+	middleware: AuthMiddleware
 )
 service course-api {
-    @handler addCourse
-    post /api/course/add (AddCourseReq)
-
-    @handler editCourse
-    post /api/course/edit/:id (EditCourseReq)
-
-    @handler deleteCourse
-    post /api/course/delete/:id (DeleteCourseReq)
-
-    @handler getCourseInfo
-    get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
-
-    @handler getCourseList
-    get /api/course/list (CourseListReq) returns (CourseListReply)
+	@handler addCourse
+	post /api/course/add (AddCourseReq)
+	
+	@handler editCourse
+	post /api/course/edit/:id (EditCourseReq)
+	
+	@handler deleteCourse
+	post /api/course/delete/:id (DeleteCourseReq)
+	
+	@handler getCourseInfo
+	get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
+	
+	@handler getCourseList
+	get /api/course/list (CourseListReq) returns (CourseListReply)
 }
 ```
 
@@ -221,7 +220,7 @@ model
     }
     ```
   
-* 打开`service/course/api/etc/user-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
+* 打开`service/course/api/etc/course-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
     ```yaml
     Name: user-api
@@ -332,63 +331,63 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 方法：`AddCourse`
 * 代码内容
 
-```go
-func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
-	if err := l.parametersCheck(req); err != nil {
-		return err
-	}
-
-	// 如果数量小于等于0则为不限
-	if req.MemberLimit.MaleCount < 0 {
-		req.MemberLimit.MaleCount = 0
-	}
-	if req.MemberLimit.FemaleCount < 0 {
-		req.MemberLimit.FemaleCount = 0
-	}
-
-	_, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
-	switch err {
-	case nil:
-		return errorx.NewDescriptionError("课程已存在")
-	case model.ErrNotFound:
-		_, err = l.svcCtx.CourseModel.Insert(model.Course{
-			Name:        req.Name,
-			Description: req.Description,
-			Classify:    req.Classify,
-			GenderLimit: int64(req.GenderLimit),
-			MaleLimit:   int64(req.MemberLimit.MaleCount),
-			FemaleLimit: int64(req.MemberLimit.FemaleCount),
-			StartTime:   req.StartTime,
-			Credit:      int64(req.Credit),
-		})
-		return err
-	default:
-		return err
-	}
-}
-
-func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
-	wordLimitErr := func(key string, limit int) error {
-		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
-	}
-
-	if utf8.RuneCountInString(req.Name) > 20 {
-		return wordLimitErr("课程名称", 20)
-	}
-
-	if utf8.RuneCountInString(req.Description) > 500 {
-		return wordLimitErr("课程描述", 500)
-	}
-
-	now := time.Now().AddDate(0, 0, 1)
-	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-	if req.StartTime < validEarliestStartTime.Unix() {
-		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
-	}
-
-	return nil
-}
-```
+    ```go
+    func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
+        if err := l.parametersCheck(req); err != nil {
+            return err
+        }
+    
+        // 如果数量小于等于0则为不限
+        if req.MemberLimit.MaleCount < 0 {
+            req.MemberLimit.MaleCount = 0
+        }
+        if req.MemberLimit.FemaleCount < 0 {
+            req.MemberLimit.FemaleCount = 0
+        }
+    
+        _, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
+        switch err {
+        case nil:
+            return errorx.NewDescriptionError("课程已存在")
+        case model.ErrNotFound:
+            _, err = l.svcCtx.CourseModel.Insert(model.Course{
+                Name:        req.Name,
+                Description: req.Description,
+                Classify:    req.Classify,
+                GenderLimit: int64(req.GenderLimit),
+                MaleLimit:   int64(req.MemberLimit.MaleCount),
+                FemaleLimit: int64(req.MemberLimit.FemaleCount),
+                StartTime:   req.StartTime,
+                Credit:      int64(req.Credit),
+            })
+            return err
+        default:
+            return err
+        }
+    }
+    
+    func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
+        wordLimitErr := func(key string, limit int) error {
+            return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+        }
+    
+        if utf8.RuneCountInString(req.Name) > 20 {
+            return wordLimitErr("课程名称", 20)
+        }
+    
+        if utf8.RuneCountInString(req.Description) > 500 {
+            return wordLimitErr("课程描述", 500)
+        }
+    
+        now := time.Now().AddDate(0, 0, 1)
+        validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+        if req.StartTime < validEarliestStartTime.Unix() {
+            return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+        }
+    
+        return nil
+    }
+    ```
 
 > 说明：这里主要是带着大家熟悉api的开发，就不介绍具体详细业务逻辑了，感兴趣可以自己看代码，对代码中逻辑有争议我们这里也不争论。
 
@@ -397,101 +396,219 @@ func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
 * 方法：`EditCourse`
 * 代码内容
 
-```go
-func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
-	if err := l.parametersCheck(req); err != nil {
-		return err
-	}
-	
-	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
-	switch err {
-	case nil:
-		data.Name = req.Name
-		data.Description = req.Description
-		data.Classify = req.Classify
-		data.GenderLimit = int64(req.GenderLimit)
-		data.MaleLimit = int64(req.MemberLimit.MaleCount)
-		data.FemaleLimit = int64(req.MemberLimit.FemaleCount)
-		data.StartTime = req.StartTime
-		data.Credit = int64(req.Credit)
-		return l.svcCtx.CourseModel.Update(*data)
-	case model.ErrNotFound:
-		return errCourseNotFound
-	default:
-		return err
-	}
-}
-
-func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
-	wordLimitErr := func(key string, limit int) error {
-		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
-	}
-
-	if req.Id < 0 {
-		return errorx.NewInvalidParameterError("id")
-	}
-
-	if utf8.RuneCountInString(req.Name) > 20 {
-		return wordLimitErr("课程名称", 20)
-	}
-
-	if utf8.RuneCountInString(req.Description) > 500 {
-		return wordLimitErr("课程描述", 500)
-	}
-
-	now := time.Now().AddDate(0, 0, 1)
-	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-	if req.StartTime < validEarliestStartTime.Unix() {
-		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
-	}
-
-	return nil
-}
-```
+    ```go
+    func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
+        if err := l.parametersCheck(req); err != nil {
+            return err
+        }
+        
+        data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+        switch err {
+        case nil:
+            data.Name = req.Name
+            data.Description = req.Description
+            data.Classify = req.Classify
+            data.GenderLimit = int64(req.GenderLimit)
+            data.MaleLimit = int64(req.MemberLimit.MaleCount)
+            data.FemaleLimit = int64(req.MemberLimit.FemaleCount)
+            data.StartTime = req.StartTime
+            data.Credit = int64(req.Credit)
+            return l.svcCtx.CourseModel.Update(*data)
+        case model.ErrNotFound:
+            return errCourseNotFound
+        default:
+            return err
+        }
+    }
+    
+    func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
+        wordLimitErr := func(key string, limit int) error {
+            return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+        }
+    
+        if req.Id < 0 {
+            return errorx.NewInvalidParameterError("id")
+        }
+    
+        if utf8.RuneCountInString(req.Name) > 20 {
+            return wordLimitErr("课程名称", 20)
+        }
+    
+        if utf8.RuneCountInString(req.Description) > 500 {
+            return wordLimitErr("课程描述", 500)
+        }
+    
+        now := time.Now().AddDate(0, 0, 1)
+        validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+        if req.StartTime < validEarliestStartTime.Unix() {
+            return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+        }
+    
+        return nil
+    }
+    ```
 
 ## 删除课程
 * 文件位置：`service/course/api/internal/logic/deletecourselogic.go`
 * 方法：`DeleteCourse`
 * 代码内容
 
-```go
-func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
-	if req.Id <= 0 {
-		return errorx.NewInvalidParameterError("id")
-	}
-
-	return l.svcCtx.CourseModel.Delete(req.Id)
-}
-```
+    ```go
+    func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
+        if req.Id <= 0 {
+            return errorx.NewInvalidParameterError("id")
+        }
+    
+        return l.svcCtx.CourseModel.Delete(req.Id)
+    }
+    ```
 
 ## 查看课程
 * 文件位置：`service/course/api/internal/logic/getcourseinfologic.go`
 * 方法：`GetCourseInfo`
 * 代码内容
 
-```go
-func (l *GetCourseInfoLogic) GetCourseInfo(req types.CourseInfoReq) (*types.CourseInfoReply, error) {
-	if req.Id <= 0 {
-		return nil, errorx.NewInvalidParameterError("id")
-	}
-
-	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
-	switch err {
-	case nil:
-		return &types.CourseInfoReply{
-			Id: data.Id,
-			Course: convertFromDbToLogic(*data),
-		}, nil
-	case model.ErrNotFound:
-		return nil, errCourseNotFound
-	default:
-		return nil, err
-	}
-}
-```
+    ```go
+    func (l *GetCourseInfoLogic) GetCourseInfo(req types.CourseInfoReq) (*types.CourseInfoReply, error) {
+        if req.Id <= 0 {
+            return nil, errorx.NewInvalidParameterError("id")
+        }
+    
+        data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+        switch err {
+        case nil:
+            return &types.CourseInfoReply{
+                Id: data.Id,
+                Course: convertFromDbToLogic(*data),
+            }, nil
+        case model.ErrNotFound:
+            return nil, errCourseNotFound
+        default:
+            return nil, err
+        }
+    }
+    ```
 
 ## 获取课程列表
+* 文件位置：`service/course/model/coursemodel.go`
+* 添加分页查询逻辑
+    * 在interface中添加两个方法`FindAllCount`和`FindLimit`
+    
+        ```go
+        CourseModel interface {
+            Insert(data Course) (sql.Result, error)
+            FindOne(id int64) (*Course, error)
+            FindOneByName(name string) (*Course, error)
+            Update(data Course) error
+            Delete(id int64) error
+            FindAllCount() (int, error) // add
+            FindLimit(page, size int) ([]*Course, error) // add
+        }
+        ```
+    * 在添加两个default实现方法
+        
+        ```go
+        func (m *defaultCourseModel) FindAllCount() (int, error) {
+        	query := fmt.Sprintf("select count(id) from %s", m.table)
+        	var count int
+        	err := m.CachedConn.QueryRowNoCache(&count, query)
+        	return count, err
+        }
+        
+        func (m *defaultCourseModel) FindLimit(page, size int) ([]*Course, error) {
+        	query := fmt.Sprintf("select %s from %s order by id limit ?,?", courseRows, m.table)
+        	var resp []*Course
+        	err := m.CachedConn.QueryRowsNoCache(&resp, query, (page-1)*size, size)
+        	return resp, err
+        }
+        ```
+      
+  * 文件位置：`service/course/api/internal/logic/getcourselistlogic.go`
+  * 方法：`GetCourseList`
+  * 代码内容：
+  
+    ```go
+    func (l *GetCourseListLogic) GetCourseList(req types.CourseListReq) (*types.CourseListReply, error) {
+    	total, err := l.svcCtx.CourseModel.FindAllCount()
+    	if err != nil {
+    		return nil, err
+    	}
+    
+    	data, err := l.svcCtx.CourseModel.FindLimit(req.Page, req.Size)
+    	if err != nil {
+    		return nil, err
+    	}
+    
+    	var list []*types.CourseInfoReply
+    	for _, item := range data {
+    		list = append(list, &types.CourseInfoReply{
+    			Id:     item.Id,
+    			Course: convertFromDbToLogic(*item),
+    		})
+    	}
+    
+    	return &types.CourseListReply{
+    		Total: total,
+    		Size:  len(list),
+    		List:  list,
+    	}, nil
+    }
+    ```
 ## 添加中间逻辑
+由于课程在api层级的操作只允许管理员操作，因此我们需要对能操作课程人员做一下限制，在前面[用户模块](../../../doc/requirement/user.md)我们介绍了用户分为三种角色分别为T、
+S、M。我们这里就限制仅M可访问该层协议，在实现中间件逻辑前，我们先手动添加一个角色用为M的用户到数据库（为了简单，这里就不单独对角色为M的用户进行管理了，直接手动插入数据库）
+
+### 添加管理员角色用户
+```mysql
+$ mysql -h 127.0.0.1 -uugozero -p
+  Enter password:
+  Welcome to the MySQL monitor.  Commands end with ; or \g.
+  Your MySQL connection id is 13
+  Server version: 8.0.21 MySQL Community Server - GPL
+  
+  Copyright (c) 2000, 2020, Oracle and/or its affiliates. All rights reserved.
+  
+  Oracle is a registered trademark of Oracle Corporation and/or its
+  affiliates. Other names may be trademarks of their respective
+  owners.
+  
+  Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+  
+  mysql> use heygozero
+  Reading table information for completion of table and column names
+  You can turn off this feature to get a quicker startup with -A
+  
+  Database changed
+  mysql> show tables;
+  +---------------------+
+  | Tables_in_heygozero |
+  +---------------------+
+  | course              |
+  | user                |
+  +---------------------+
+  2 rows in set (0.00 sec)
+  
+  mysql> insert into user (username,password,name,gender,role) value ('admin','111111','admin',1,'manager');
+  Query OK, 1 row affected (0.01 sec)
+  
+  mysql> select * from user where role = 'manager' limit 1;
+ +----+----------+----------+-------+--------+---------+---------------------+---------------------+
+ | id | username | password | name  | gender | role    | create_time         | update_time         |
+ +----+----------+----------+-------+--------+---------+---------------------+---------------------+
+ |  2 | admin    | 111111   | admin |      1 | manager | 2020-12-12 22:32:37 | 2020-12-12 22:32:37 |
+ +----+----------+----------+-------+--------+---------+---------------------+---------------------+
+ 1 row in set (0.01 sec)
+ 
+ mysql>
+```
+
+### 填充中间件逻辑
+在这里，我们需要访问`user`表的用户信息了，因此就需要RPC来进行微服务间的通讯，所以，在此前还要创建一个user.rpc服务来为我们传递信息，关于user.rpc逻辑请查看[user rpc创建](../../user/rpc/readme.md)
+
+
+
+
+
 
 
 

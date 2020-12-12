@@ -30,6 +30,8 @@ type (
 		FindOneByName(name string) (*Course, error)
 		Update(data Course) error
 		Delete(id int64) error
+		FindAllCount() (int, error)
+		FindLimit(page, size int) ([]*Course, error)
 	}
 
 	defaultCourseModel struct {
@@ -127,6 +129,20 @@ func (m *defaultCourseModel) Delete(id int64) error {
 		return conn.Exec(query, id)
 	}, courseIdKey, courseNameKey)
 	return err
+}
+
+func (m *defaultCourseModel) FindAllCount() (int, error) {
+	query := fmt.Sprintf("select count(id) from %s", m.table)
+	var count int
+	err := m.CachedConn.QueryRowNoCache(&count, query)
+	return count, err
+}
+
+func (m *defaultCourseModel) FindLimit(page, size int) ([]*Course, error) {
+	query := fmt.Sprintf("select %s from %s order by id limit ?,?", courseRows, m.table)
+	var resp []*Course
+	err := m.CachedConn.QueryRowsNoCache(&resp, query, (page-1)*size, size)
+	return resp, err
 }
 
 func (m *defaultCourseModel) formatPrimary(primary interface{}) string {

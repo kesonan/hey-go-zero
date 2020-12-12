@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-xorm/builder"
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/sqlc"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
@@ -44,6 +45,7 @@ type (
 		FindOneByUsername(username string) (*User, error)
 		Update(data User) error
 		Delete(id int64) error
+		FindByIds(ids []int64) ([]*User, error)
 	}
 
 	defaultUserModel struct {
@@ -138,6 +140,18 @@ func (m *defaultUserModel) Delete(id int64) error {
 		return conn.Exec(query, id)
 	}, userUsernameKey, userIdKey)
 	return err
+}
+
+func (m *defaultUserModel) FindByIds(ids []int64) ([]*User, error) {
+	query, args, err := builder.Select(userRows).From(m.table).Where(builder.Eq{"id": ids}).ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []*User
+	err = m.CachedConn.QueryRowsNoCache(&resp, query, args...)
+
+	return resp, err
 }
 
 func (m *defaultUserModel) formatPrimary(primary interface{}) string {
