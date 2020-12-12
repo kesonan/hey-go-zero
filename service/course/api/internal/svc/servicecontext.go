@@ -20,19 +20,20 @@ import (
 	"hey-go-zero/service/course/model"
 
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/rest"
 )
 
 type ServiceContext struct {
 	Config         config.Config
+	AuthMiddleware rest.Middleware
 	CourseModel    model.CourseModel
-	AuthMiddleware *middleware.AuthMiddleware
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	return &ServiceContext{
 		Config:         c,
+		AuthMiddleware: middleware.NewAuthMiddleware().Handle,
 		CourseModel:    model.NewCourseModel(conn, c.CacheRedis),
-		AuthMiddleware: middleware.NewAuthMiddleware(),
 	}
 }

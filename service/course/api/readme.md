@@ -246,13 +246,16 @@ package svc
 
 import (
 	"hey-go-zero/service/course/api/internal/config"
+	"hey-go-zero/service/course/api/internal/middleware"
 	"hey-go-zero/service/course/model"
 
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/rest"
 )
 
 type ServiceContext struct {
 	Config      config.Config
+    AuthMiddleware rest.Middleware
 	CourseModel model.CourseModel
 }
 
@@ -260,6 +263,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	return &ServiceContext{
 		Config:      c,
+        AuthMiddleware: middleware.NewAuthMiddleware().Handle,
 		CourseModel: model.NewCourseModel(conn, c.CacheRedis),
 	}
 }
