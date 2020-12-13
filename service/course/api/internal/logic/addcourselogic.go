@@ -51,6 +51,7 @@ func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
 	if req.MemberLimit.MaleCount < 0 {
 		req.MemberLimit.MaleCount = 0
 	}
+
 	if req.MemberLimit.FemaleCount < 0 {
 		req.MemberLimit.FemaleCount = 0
 	}

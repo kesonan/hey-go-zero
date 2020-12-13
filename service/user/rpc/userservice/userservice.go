@@ -14,10 +14,10 @@ import (
 )
 
 type (
-	IdsReq        = user.IdsReq
-	UserListReply = user.UserListReply
 	UserReq       = user.UserReq
 	UserReply     = user.UserReply
+	IdsReq        = user.IdsReq
+	UserListReply = user.UserListReply
 
 	UserService interface {
 		//  findone

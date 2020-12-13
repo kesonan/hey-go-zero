@@ -34,12 +34,14 @@ type (
 		// 学分
 		Credit int `json:"credit,range=(0,6]"`
 	}
+
 	MemberLimit {
 		// 男生限制人数 <=0：不限
 		MaleCount int `json:"maleCount"`
 		// 女生限制人数 <=0：不限
 		FemaleCount int `json:"femaleCount"`
 	}
+
 	AddCourseReq {
 		Course
 	}
@@ -254,17 +256,17 @@ import (
 )
 
 type ServiceContext struct {
-	Config      config.Config
-    AuthMiddleware rest.Middleware
-	CourseModel model.CourseModel
+	Config         config.Config
+	AuthMiddleware rest.Middleware
+	CourseModel    model.CourseModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	return &ServiceContext{
-		Config:      c,
-        AuthMiddleware: middleware.NewAuthMiddleware().Handle,
-		CourseModel: model.NewCourseModel(conn, c.CacheRedis),
+		Config:         c,
+		AuthMiddleware: middleware.NewAuthMiddleware().Handle,
+		CourseModel:    model.NewCourseModel(conn, c.CacheRedis),
 	}
 }
 ```
@@ -345,6 +347,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
         if req.MemberLimit.MaleCount < 0 {
             req.MemberLimit.MaleCount = 0
         }
+  
         if req.MemberLimit.FemaleCount < 0 {
             req.MemberLimit.FemaleCount = 0
         }
@@ -606,8 +609,140 @@ $ mysql -h 127.0.0.1 -uugozero -p
  mysql>
 ```
 
-### 填充中间件逻辑
+### 创建user.rpc
 在这里，我们需要访问`user`表的用户信息了，因此就需要RPC来进行微服务间的通讯，所以，在此前还要创建一个user.rpc服务来为我们传递信息，关于user.rpc逻辑请查看[user rpc创建](../../user/rpc/readme.md)
+
+### 添加`UserRpc`配置定义和yaml配置项
+* 编打开`service/course/api/internal/config/config.go`，添加`UserRpc`定义
+
+    ```go
+    package config
+    
+    import (
+    	"github.com/tal-tech/go-zero/core/stores/cache"
+    	"github.com/tal-tech/go-zero/rest"
+    	"github.com/tal-tech/go-zero/zrpc"
+    )
+    
+    type Config struct {
+    	rest.RestConf
+    	Auth struct {
+    		AccessSecret string
+    		AccessExpire int64
+    	}
+    	Mysql struct {
+    		DataSource string
+    	}
+    	CacheRedis cache.CacheConf
+    	UserRpc    zrpc.RpcClientConf
+    }
+    ```
+  
+* 打开`service/course/api/etc/course-api.yaml`文件，添加`UserRpc`配置项
+
+    ```yaml
+    Name: course-api
+    Host: 0.0.0.0
+    Port: 8889
+    Auth:
+      AccessSecret: 1e69481b-7405-4369-9ce3-9aaffdb56ce3
+      AccessExpire: 3600
+    Mysql:
+      DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+    CacheRedis:
+      - Host: 127.0.0.1:6379
+      Type: node
+    UserRpc:
+      Etcd:
+        Hosts:
+          - 127.0.0.1:2379
+        Key: user.rpc
+    ```
+
+    > 说明： 我本地redis没有设置密码，因此没有配置`Password`配置项。
+
+### ServiceContext增加`UserRpcClient`资源
+打开`service/course/api/internal/svc/servicecontext.go`，添加`UserRpcClient`依赖。
+
+```go
+package svc
+
+import (
+	"hey-go-zero/service/course/api/internal/config"
+	"hey-go-zero/service/course/api/internal/middleware"
+	"hey-go-zero/service/course/model"
+	"hey-go-zero/service/user/rpc/userservice"
+
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/zrpc"
+)
+
+type ServiceContext struct {
+	Config         config.Config
+	AuthMiddleware rest.Middleware
+	CourseModel    model.CourseModel
+	UserRpcClient  userservice.UserService
+}
+
+func NewServiceContext(c config.Config) *ServiceContext {
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	userRpcClient := zrpc.MustNewClient(c.UserRpc)
+	userRpcService := userservice.NewUserService(userRpcClient)
+	return &ServiceContext{
+		Config:         c,
+		AuthMiddleware: middleware.NewAuthMiddleware(userRpcService).Handle,
+		CourseModel:    model.NewCourseModel(conn, c.CacheRedis),
+		UserRpcClient:  userRpcService,
+	}
+}
+```
+
+### 修改中间件代码
+
+* 添加`userRpcClient`依赖
+
+    ```go
+    type AuthMiddleware struct {
+    	userRpcClient userservice.UserService
+    }
+    
+    func NewAuthMiddleware(userRpcClient userservice.UserService) *AuthMiddleware {
+    	return &AuthMiddleware{
+    		userRpcClient: userRpcClient,
+    	}
+    }
+    ```
+* 完善中间件逻辑
+
+    ```go
+    userId, ok := jwtx.GetUserId(w, r)
+    if !ok {
+        return
+    }
+
+    data, err := m.userRpcClient.FindOne(r.Context(), &userservice.UserReq{
+        Id: userId,
+    })
+    if err != nil {
+        st := status.Convert(err)
+        if st.Code() == codes.NotFound {
+            httpx.Error(w, errorx.NewDescriptionError("用户不存在"))
+            return
+        }
+
+        httpx.Error(w, errorx.NewDescriptionError("用户信息获取失败"))
+        return
+    }
+
+    if data.Role != "manager" {
+        httpx.WriteJson(w, http.StatusUnauthorized, errorx.NewDescriptionError("无权限访问"))
+        return
+    }
+
+    next(w, r)
+    ```
+
 
 
 

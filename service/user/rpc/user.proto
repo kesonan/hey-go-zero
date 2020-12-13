@@ -18,7 +18,7 @@ message UserReply {
   string name = 2;
   // 性别，0-未知，1-男，2-女
   gender gender = 3;
-  // 角色，teacher-教师，student-学生
+  // 角色，teacher-教师，student-学生，manager-管理员
   string role = 4;
   int64 createTime = 5;
   int64 updateTime = 6;

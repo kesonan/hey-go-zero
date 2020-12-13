@@ -36,7 +36,7 @@ message UserReply {
   string name = 2;
   // 性别，0-未知，1-男，2-女
   gender gender = 3;
-  // 角色，teacher-教师，student-学生
+  // 角色，teacher-教师，student-学生，manager-管理员
   string role = 4;
   int64 createTime = 5;
   int64 updateTime = 6;
@@ -133,11 +133,11 @@ user/rpc
       Hosts:
       - 127.0.0.1:2379
       Key: user.rpc
-      Mysql:
-        DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
-      CacheRedis:
-        - Host: 127.0.0.1:6379
-          Type: node
+    Mysql:
+      DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+    CacheRedis:
+      - Host: 127.0.0.1:6379
+      Type: node
     ```
 
     >说明： 我本地redis没有设置密码，因此没有配置`Password`配置项。

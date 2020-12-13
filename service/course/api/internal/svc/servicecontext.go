@@ -18,22 +18,28 @@ import (
 	"hey-go-zero/service/course/api/internal/config"
 	"hey-go-zero/service/course/api/internal/middleware"
 	"hey-go-zero/service/course/model"
+	"hey-go-zero/service/user/rpc/userservice"
 
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type ServiceContext struct {
 	Config         config.Config
 	AuthMiddleware rest.Middleware
 	CourseModel    model.CourseModel
+	UserRpcClient  userservice.UserService
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	userRpcClient := zrpc.MustNewClient(c.UserRpc)
+	userRpcService := userservice.NewUserService(userRpcClient)
 	return &ServiceContext{
 		Config:         c,
-		AuthMiddleware: middleware.NewAuthMiddleware().Handle,
+		AuthMiddleware: middleware.NewAuthMiddleware(userRpcService).Handle,
 		CourseModel:    model.NewCourseModel(conn, c.CacheRedis),
+		UserRpcClient:  userRpcService,
 	}
 }

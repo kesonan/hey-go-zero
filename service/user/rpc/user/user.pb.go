@@ -135,7 +135,7 @@ type UserReply struct {
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// 性别，0-未知，1-男，2-女
 	Gender Gender `protobuf:"varint,3,opt,name=gender,proto3,enum=user.Gender" json:"gender,omitempty"`
-	// 角色，teacher-教师，student-学生
+	// 角色，teacher-教师，student-学生，manager-管理员
 	Role       string `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
 	CreateTime int64  `protobuf:"varint,5,opt,name=createTime,proto3" json:"createTime,omitempty"`
 	UpdateTime int64  `protobuf:"varint,6,opt,name=updateTime,proto3" json:"updateTime,omitempty"`
