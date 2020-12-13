@@ -272,7 +272,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 }
 ```
 
-# 添加用户信息校验中间件和自定义错误码
+# 添加用户信息校验中间件(全局)和自定义错误码
 由于在user api中已经添加过`UserCheck`用户信息校验中间件和[自定义错误码](../../../doc/gozero/http-error.md)了，这里就直接在main文件中使用即可。
 
 ```go
@@ -578,7 +578,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
     	}, nil
     }
     ```
-## 添加中间逻辑
+## 添加中间逻辑（指定路由组）
 由于课程在api层级的操作只允许管理员操作，因此我们需要对能操作课程人员做一下限制，在前面[用户模块](../../../doc/requirement/user.md)我们介绍了用户分为三种角色分别为T、
 S、M。我们这里就限制仅M可访问该层协议，在实现中间件逻辑前，我们先手动添加一个角色用为M的用户到数据库（为了简单，这里就不单独对角色为M的用户进行管理了，直接手动插入数据库）
 
