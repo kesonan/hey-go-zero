@@ -170,7 +170,7 @@ CREATE TABLE `course` (
   `gender_limit` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别限制 0-不限，1-男，2-女',
   `male_limit` int DEFAULT '0' COMMENT '男生限制人数 0-不限',
   `female_limit` int DEFAULT '0' COMMENT '女生限制人数 0-不限',
-  `start_time` int NOT NULL DEFAULT '0' COMMENT '开课时间，时间戳，单位：毫秒',
+  `start_time` int NOT NULL DEFAULT '0' COMMENT '开课时间，时间戳，单位：秒',
   `credit` tinyint(1) NOT NULL DEFAULT '1' COMMENT '学分',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
