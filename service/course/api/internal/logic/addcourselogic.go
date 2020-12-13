@@ -17,6 +17,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -80,6 +81,10 @@ func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
 func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
 	wordLimitErr := func(key string, limit int) error {
 		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+	}
+
+	if len(strings.TrimSpace(req.Name)) == 0 {
+		return errorx.NewInvalidParameterError("name")
 	}
 
 	if utf8.RuneCountInString(req.Name) > 20 {

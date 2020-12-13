@@ -12,7 +12,7 @@ type Course struct {
 	GenderLimit int         `json:"genderLimit,options=0|1|2"`
 	MemberLimit MemberLimit `json:"memberLimit,optional"`
 	StartTime   int64       `json:"startTime"`
-	Credit      int         `json:"credit,range=(0,6]"`
+	Credit      int         `json:"credit,range=(0:6]"`
 }
 
 type CourseInfoReply struct {
@@ -31,8 +31,8 @@ type CourseListReply struct {
 }
 
 type CourseListReq struct {
-	Page int `json:"page,range=(0:]"`
-	Size int `json:"size,range=(0:]"`
+	Page int `form:"page,range=(0:]"`
+	Size int `form:"size,range=(0:]"`
 }
 
 type DeleteCourseReq struct {

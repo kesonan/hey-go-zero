@@ -20,6 +20,7 @@ import (
 	"hey-go-zero/common/errorx"
 	"hey-go-zero/service/course/api/internal/svc"
 	"hey-go-zero/service/course/api/internal/types"
+	"hey-go-zero/service/course/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -43,5 +44,13 @@ func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
 		return errorx.NewInvalidParameterError("id")
 	}
 
-	return l.svcCtx.CourseModel.Delete(req.Id)
+	err := l.svcCtx.CourseModel.Delete(req.Id)
+	switch err {
+	case nil:
+		return nil
+	case model.ErrNotFound:
+		return errCourseNotFound
+	default:
+		return err
+	}
 }

@@ -32,7 +32,7 @@ type (
 		MemberLimit MemberLimit `json:"memberLimit,optional"`
 		StartTime int64 `json:"startTime"`
 		// 学分
-		Credit int `json:"credit,range=(0,6]"`
+		Credit int `json:"credit,range=(0:6]"`
 	}
 
 	MemberLimit {
@@ -65,8 +65,8 @@ type (
 	}
 	
 	CourseListReq {
-		Page int `json:"page,range=(0:]"`
-		Size int `json:"size,range=(0:]"`
+		Page int `form:"page,range=(0:]"`
+		Size int `form:"size,range=(0:]"`
 	}
 	
 	CourseListReply {
@@ -234,7 +234,8 @@ model
     Mysql:
       DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
     CacheRedis:
-      - Host: 127.0.0.1:6379
+      -
+        Host: 127.0.0.1:6379
         Type: node
     ```
 
@@ -374,25 +375,29 @@ func convertFromDbToLogic(data model.Course) types.Course {
     }
     
     func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
-        wordLimitErr := func(key string, limit int) error {
-            return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
-        }
+    	wordLimitErr := func(key string, limit int) error {
+    		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+    	}
     
-        if utf8.RuneCountInString(req.Name) > 20 {
-            return wordLimitErr("课程名称", 20)
-        }
+    	if len(strings.TrimSpace(req.Name)) == 0 {
+    		return errorx.NewInvalidParameterError("name")
+    	}
+    	
+    	if utf8.RuneCountInString(req.Name) > 20 {
+    		return wordLimitErr("课程名称", 20)
+    	}
     
-        if utf8.RuneCountInString(req.Description) > 500 {
-            return wordLimitErr("课程描述", 500)
-        }
+    	if utf8.RuneCountInString(req.Description) > 500 {
+    		return wordLimitErr("课程描述", 500)
+    	}
     
-        now := time.Now().AddDate(0, 0, 1)
-        validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-        if req.StartTime < validEarliestStartTime.Unix() {
-            return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
-        }
+    	now := time.Now().AddDate(0, 0, 1)
+    	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+    	if req.StartTime < validEarliestStartTime.Unix() {
+    		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+    	}
     
-        return nil
+    	return nil
     }
     ```
 
@@ -429,29 +434,33 @@ func convertFromDbToLogic(data model.Course) types.Course {
     }
     
     func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
-        wordLimitErr := func(key string, limit int) error {
-            return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
-        }
+    	wordLimitErr := func(key string, limit int) error {
+    		return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", key, limit))
+    	}
     
-        if req.Id < 0 {
-            return errorx.NewInvalidParameterError("id")
-        }
+    	if req.Id < 0 {
+    		return errorx.NewInvalidParameterError("id")
+    	}
     
-        if utf8.RuneCountInString(req.Name) > 20 {
-            return wordLimitErr("课程名称", 20)
-        }
+    	if len(strings.TrimSpace(req.Name)) == 0 {
+    		return errorx.NewInvalidParameterError("name")
+    	}
     
-        if utf8.RuneCountInString(req.Description) > 500 {
-            return wordLimitErr("课程描述", 500)
-        }
+    	if utf8.RuneCountInString(req.Name) > 20 {
+    		return wordLimitErr("课程名称", 20)
+    	}
     
-        now := time.Now().AddDate(0, 0, 1)
-        validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-        if req.StartTime < validEarliestStartTime.Unix() {
-            return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
-        }
+    	if utf8.RuneCountInString(req.Description) > 500 {
+    		return wordLimitErr("课程描述", 500)
+    	}
     
-        return nil
+    	now := time.Now().AddDate(0, 0, 1)
+    	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
+    	if req.StartTime < validEarliestStartTime.Unix() {
+    		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
+    	}
+    
+    	return nil
     }
     ```
 
@@ -462,11 +471,19 @@ func convertFromDbToLogic(data model.Course) types.Course {
 
     ```go
     func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
-        if req.Id <= 0 {
-            return errorx.NewInvalidParameterError("id")
-        }
+    	if req.Id <= 0 {
+    		return errorx.NewInvalidParameterError("id")
+    	}
     
-        return l.svcCtx.CourseModel.Delete(req.Id)
+    	err:=l.svcCtx.CourseModel.Delete(req.Id)
+    	switch err {
+    	case nil:
+    		return nil
+    	case model.ErrNotFound:
+    		return errCourseNotFound
+    	default:
+    		return err
+    	}
     }
     ```
 
@@ -595,14 +612,14 @@ $ mysql -h 127.0.0.1 -uugozero -p
   +---------------------+
   2 rows in set (0.00 sec)
   
-  mysql> insert into user (username,password,name,gender,role) value ('admin','111111','admin',1,'manager');
+  mysql> insert into user (username,password,name,gender,role) value ('gozero','111111','admin',1,'manager');
   Query OK, 1 row affected (0.01 sec)
   
   mysql> select * from user where role = 'manager' limit 1;
  +----+----------+----------+-------+--------+---------+---------------------+---------------------+
  | id | username | password | name  | gender | role    | create_time         | update_time         |
  +----+----------+----------+-------+--------+---------+---------------------+---------------------+
- |  2 | admin    | 111111   | admin |      1 | manager | 2020-12-12 22:32:37 | 2020-12-12 22:32:37 |
+ |  2 | gozero    | 111111   | admin |      1 | manager | 2020-12-12 22:32:37 | 2020-12-12 22:32:37 |
  +----+----------+----------+-------+--------+---------+---------------------+---------------------+
  1 row in set (0.01 sec)
  
@@ -650,8 +667,9 @@ $ mysql -h 127.0.0.1 -uugozero -p
     Mysql:
       DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
     CacheRedis:
-      - Host: 127.0.0.1:6379
-      Type: node
+      -
+        Host: 127.0.0.1:6379
+        Type: node
     UserRpc:
       Etcd:
         Hosts:
@@ -736,16 +754,262 @@ func NewServiceContext(c config.Config) *ServiceContext {
     }
 
     if data.Role != "manager" {
-        httpx.WriteJson(w, http.StatusUnauthorized, errorx.NewDescriptionError("无权限访问"))
+        httpx.Error(w, errorx.NewDescriptionError("无权限访问"))
         return
     }
 
     next(w, r)
     ```
 
+# 请求服务
 
+## 启动user.api
+进入文件夹`service/user/api`，右键进入Idea终端
 
+```shell script
+$ go run user.go 
+```
 
+```text
+Starting server at 0.0.0.0:8888...
+```
+
+## 启动redis
+
+```shell script
+$ redis-server
+```
+
+## 启动etcd
+
+```shell script
+$ etcd
+```
+
+## 启动user.rpc
+进入文件夹`service/user/rpc`，通过右键进入Idea终端
+
+```shell script
+$ go run user.go
+```
+```text
+Starting rpc server at 127.0.0.1:8080...
+```
+
+## 启动course-api服务
+进入文件夹`service/course/api`，右键进入Idea终端
+
+```shell script
+$ go run course.go
+```
+```text
+Starting server at 0.0.0.0:8889...
+```
+
+## 访问服务
+* 登录
+
+```shell script
+$ curl -i -X POST \
+    http://127.0.0.1:8888/api/user/login \
+    -H 'cache-control: no-cache' \
+    -H 'content-type: application/json' \
+    -d '{
+  	"username":"gozero",
+      "password":"111111"
+  }'
+```
+```text
+HTTP/1.1 200 OK
+Content-Type: application/json
+Date: Sun, 13 Dec 2020 12:48:58 GMT
+Content-Length: 178
+
+{"id":2,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk","expireAt":1607867338}
+```
+
+* 添加课程
+
+    我们先用一个非管理员身份去访问试一下（重新以其他身份登录获取token）
+    
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8889/api/course/add \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4Njc1MjYsImlhdCI6MTYwNzg2MzkyNiwiaWQiOjF9.-CfZi6UQ5SFEQkyVZizPyvT6oQkZ7oAMWRVTGthWl8U' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 1' \
+        -d '{
+        
+      }'
+    ```
+    ```text
+    HTTP/1.1 406 Not Acceptable
+    Content-Type: application/json
+    Date: Sun, 13 Dec 2020 12:55:41 GMT
+    Content-Length: 36
+    
+    {"code":-1,"desc":"无权限访问"}
+    ```
+    
+    正如我们所期望的那样，非管理员身份是禁止访问的。所以这里我们的中间件生效了；
+    下面我们以管理员身份去操作课程吧
+    
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8889/api/course/add \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+      	"name":"Golang语言开发",
+      	"description":"Golang语言开发从入门到放弃！",
+      	"classify":"计算机",
+      	"genderLimit":0,
+      	"startTime":1607911200,
+      	"credit":1
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Sun, 13 Dec 2020 13:12:22 GMT
+    Content-Length: 0
+    ```
+    再以相同的参数去请求一次会得到
+    ```text
+    HTTP/1.1 406 Not Acceptable
+    Content-Type: application/json
+    Date: Sun, 13 Dec 2020 13:13:04 GMT
+    Content-Length: 36
+    
+    {"code":-1,"desc":"课程已存在"}
+    ```
+
+* 编辑课程
+
+    我们先找一个不存在的id去编辑一下，验证一下逻辑
+    
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8889/api/course/edit/3 \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+      	"name":"Golang语言开发",
+      	"description":"Golang语言开发从入门到放弃！",
+      	"classify":"计算机",
+      	"genderLimit":0,
+      	"startTime":1607911200,
+      	"credit":1
+      }'
+    ```
+    ```text
+    HTTP/1.1 406 Not Acceptable
+    Content-Type: application/json
+    Date: Sun, 13 Dec 2020 13:15:30 GMT
+    Content-Length: 36
+    
+    {"code":-1,"desc":"课程不存在"}
+    ```
+    正如我们预料的那样会提示`课程不存在`的错误。
+    下面我们来对之前添加过的课程做一下编辑
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8889/api/course/edit/2 \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+        "name":"Golang语言开发",
+        "description":"Golang语言开发从入门到放弃！",
+        "classify":"互联网",
+        "genderLimit":0,
+        "startTime":1607911200,
+        "credit":1
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Sun, 13 Dec 2020 13:18:31 GMT
+    Content-Length: 0
+    ```
+
+* 查询课程
+
+    ```shell script
+    $ curl -i -X GET \
+        http://127.0.0.1:8889/api/course/2 \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Sun, 13 Dec 2020 13:19:54 GMT
+    Content-Length: 211
+    
+    {"id":2,"name":"Golang语言开发","description":"Golang语言开发从入门到放弃！","classify":"互联网","genderLimit":0,"memberLimit":{"maleCount":0,"femaleCount":0},"startTime":1607911200,"credit":1}  
+    ```
+  
+* 获取课程列表
+
+    ```shell script
+    $ curl -i -X GET \
+        'http://127.0.0.1:8889/api/course/list?page=1&size=10' \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Sun, 13 Dec 2020 13:22:51 GMT
+    Content-Length: 241
+    
+    {"total":1,"size":1,"list":[{"id":2,"name":"Golang语言开发","description":"Golang语言开发从入门到放弃！","classify":"互联网","genderLimit":0,"memberLimit":{"maleCount":0,"femaleCount":0},"startTime":1607911200,"credit":1}]}
+    ```
+* 删除课程
+    
+    ```shell script
+    curl -i -X POST \
+      http://127.0.0.1:8889/api/course/delete/2 \
+      -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
+      -H 'content-type: application/json' \
+      -H 'x-user-id: 2'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Sun, 13 Dec 2020 13:18:31 GMT
+    Content-Length: 0  
+    ```
+
+> 说明：以上请求中的id以开发人员实际数据库为准。
+
+# 本章节贡献者
+ * [songmeizi](https://github.com/songmeizi)
+ 
+ # 技术点总结
+ * go-zero中间件使用
+    * 全局中间件
+    * 指定路由组中间件
+ * go-zero自定义错误
+ * go-zero rpc调用
+ 
+ # 相关推荐
+ * [zrpc](https://github.com/tal-tech/zero-doc/blob/main/doc/zrpc.md)
+ * [使用goctl创建rpc](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-rpc.md)
+ * [使用goctl创建model](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-model-sql.md)
+ 
+ # 结尾
+ 本章节完。
+ 
+ 如发现任何错误请通过Issue发起问题修复申请。
+ 
+你可能会浏览 
+* [用户模块](../../../doc/requirement/user.md)
+* [选课模块](../../../doc/requirement/selection.md)
+* [排课模块](../../../doc/requirement/schedule.md)
 
 
 

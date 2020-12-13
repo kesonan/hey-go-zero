@@ -7,8 +7,9 @@ Auth:
 Mysql:
   DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 CacheRedis:
-  - Host: 127.0.0.1:6379
-  Type: node
+  -
+    Host: 127.0.0.1:6379
+    Type: node
 UserRpc:
   Etcd:
     Hosts:

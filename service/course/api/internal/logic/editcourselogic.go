@@ -17,6 +17,7 @@ package logic
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -73,6 +74,10 @@ func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
 
 	if req.Id < 0 {
 		return errorx.NewInvalidParameterError("id")
+	}
+
+	if len(strings.TrimSpace(req.Name)) == 0 {
+		return errorx.NewInvalidParameterError("name")
 	}
 
 	if utf8.RuneCountInString(req.Name) > 20 {

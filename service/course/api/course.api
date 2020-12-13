@@ -16,16 +16,16 @@ type (
 		MemberLimit MemberLimit `json:"memberLimit,optional"`
 		StartTime int64 `json:"startTime"`
 		// 学分
-		Credit int `json:"credit,range=(0,6]"`
+		Credit int `json:"credit,range=(0:6]"`
 	}
-
+	
 	MemberLimit {
 		// 男生限制人数 <=0：不限
 		MaleCount int `json:"maleCount"`
 		// 女生限制人数 <=0：不限
 		FemaleCount int `json:"femaleCount"`
 	}
-
+	
 	AddCourseReq {
 		Course
 	}
@@ -49,8 +49,8 @@ type (
 	}
 	
 	CourseListReq {
-		Page int `json:"page,range=(0:]"`
-		Size int `json:"size,range=(0:]"`
+		Page int `form:"page,range=(0:]"`
+		Size int `form:"size,range=(0:]"`
 	}
 	
 	CourseListReply {

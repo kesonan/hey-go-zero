@@ -16,14 +16,17 @@ package svc
 
 import (
 	"hey-go-zero/service/user/api/internal/config"
+	"hey-go-zero/service/user/api/internal/middleware"
 	"hey-go-zero/service/user/model"
 
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/rest"
 )
 
 type ServiceContext struct {
 	Config    config.Config
 	UserModel model.UserModel
+	UserCheck rest.Middleware
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -31,5 +34,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config:    c,
 		UserModel: model.NewUserModel(conn, c.CacheRedis),
+		UserCheck: middleware.NewUserCheckMiddleware().Handle,
 	}
 }

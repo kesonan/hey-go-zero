@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	"hey-go-zero/common/errorx"
-	"hey-go-zero/common/middleware"
 	"hey-go-zero/service/user/api/internal/config"
 	"hey-go-zero/service/user/api/internal/handler"
 	"hey-go-zero/service/user/api/internal/svc"
@@ -46,7 +45,6 @@ func main() {
 
 	handler.RegisterHandlers(server, ctx)
 
-	server.Use(middleware.UserCheck)
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
 }

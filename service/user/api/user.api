@@ -53,6 +53,7 @@ service user-api {
 @server(
 	jwt: Auth
 	group: auth
+	middleware: UserCheck
 )
 service user-api {
 	@handler userInfo

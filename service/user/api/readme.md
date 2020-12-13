@@ -322,8 +322,9 @@ func Match(s, reg string) bool {
     Mysql:
       DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
     CacheRedis:
-      - Host: 127.0.0.1:6379
-      Type: node
+      -  
+        Host: 127.0.0.1:6379
+        Type: node
     ```
 
     >说明： 我本地redis没有设置密码，因此没有配置`Password`配置项。
@@ -729,29 +730,46 @@ func UserCheck(next http.HandlerFunc) http.HandlerFunc {
 }
 ```
 
-在main函数文件`service/user/api/user.go`中使用中间件
-
+修改user.api文件夹，给修改用户信息、获取用户信息两条协议添加middleware标志
 ```go
-func main() {
-	flag.Parse()
-
-	var c config.Config
-	conf.MustLoad(*configFile, &c)
-
-	ctx := svc.NewServiceContext(c)
-	server := rest.MustNewServer(c.RestConf)
-	defer server.Stop()
-
-	errHandler := errorx.Handler{}
-	httpx.SetErrorHandler(errHandler.Handle())
-
-	handler.RegisterHandlers(server, ctx)
-
-	server.Use(middleware.UserCheck) // add: 添加用户信息校验中间件
-	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
-	server.Start()
+@server(
+	jwt: Auth
+	group: auth
+	middleware: UserCheck
+)
+service user-api {
+	@handler userInfo
+	get /api/user/info/self returns (UserInfoReply)
+	
+	@handler userInfoEdit
+	post /api/user/info/edit (UserInfoReq)
 }
 ```
+
+重新生成api代码，修改文件`service/user/api/internal/svc/servicecontext.go`,添加`UserCheck`中间件声明，
+
+```go
+type ServiceContext struct {
+	Config    config.Config
+	UserModel model.UserModel
+	UserCheck rest.Middleware // add
+}
+
+func NewServiceContext(c config.Config) *ServiceContext {
+	conn := sqlx.NewMysql(c.Mysql.DataSource)
+	return &ServiceContext{
+		Config:    c,
+		UserModel: model.NewUserModel(conn, c.CacheRedis),
+		UserCheck: middleware.NewUserCheckMiddleware().Handle,// add
+	}
+}
+```
+
+填充中间逻辑，修改`service/user/api/internal/middleware/usercheckmiddleware.go`,填充`Handle`方法代码：
+```go
+return middleware.UserCheck(next)
+```
+
 
 最后请求来验证一下以上两条协议
 

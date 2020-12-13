@@ -44,7 +44,7 @@ func (m *AuthMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if data.Role != "manager" {
-			httpx.WriteJson(w, http.StatusUnauthorized, errorx.NewDescriptionError("无权限访问"))
+			httpx.Error(w, errorx.NewDescriptionError("无权限访问"))
 			return
 		}
 
