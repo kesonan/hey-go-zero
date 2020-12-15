@@ -1,0 +1,125 @@
+type (
+	MemberLimit {
+		// 男生限制人数 <=0：不限
+		MaleCount int `json:"maleCount"`
+		// 女生限制人数 <=0：不限
+		FemaleCount int `json:"femaleCount"`
+	}
+	
+	Course {
+		Id int64 `json:"id"`
+		Name string `json:"name"`
+		Description string `json:"description"`
+		Classify string `json:"classify"`
+		// 性别限制，0-不限，1-男，2-女
+		GenderLimit int `json:"genderLimit"`
+		// 可选参数，如果不传则代表不限制人数
+		MemberLimit MemberLimit `json:"memberLimit"`
+		StartTime int64 `json:"startTime"`
+		// 学分
+		Credit int `json:"credit"`
+		TeacherName string `json:"teacherName"`
+	}
+	
+	SelectionCourse {
+		CourseId int64 `json:"courseId"`
+		TeacherId int64 `json:"teacherId"`
+	}
+	
+	SelectionAddCourseReq {
+		SelectionId int64 `path:"selectionId"`
+		List []*SelectionCourse `json:"list"`
+	}
+	
+	CreateSelectionReq {
+		Name string `json:"name"`
+		MaxCredit int `json:"maxCredit,range=(0:12]"`
+		StartTime int64 `json:"startTime"`
+		EndTime int64 `json:"endTime"`
+		Notification string `json:"notification"`
+	}
+	
+	EditSelectionReq {
+		Id int64 `path:"id"`
+		CreateSelectionReq
+	}
+	
+	SelectionIdReq {
+		Id int64 `path:"id"`
+	}
+	
+	SelectionReply {
+		Name string `json:"name"`
+		MaxCredit int `json:"maxCredit"`
+		StartTime int64 `json:"startTime"`
+		EndTime int64 `json:"endTime"`
+		Notification string `json:"notification"`
+		CourseList []*Course `json:"courseList"`
+	}
+	
+	SelectCourseId {
+		Id int64 `path:"id"`
+	}
+	
+	MineCourseReply {
+		List []*Course `json:"list"`
+	}
+)
+
+@server(
+	jwt: Auth
+	middleware: ManagerCheck // 仅管理员可访问
+)
+service selection-api {
+	@doc "创建选课"
+	@handler createSelection
+	post /api/selection/create (CreateSelectionReq)
+	
+	@doc "编辑选课"
+	@handler editSelection
+	post /api/selection/edit (EditSelectionReq)
+	
+	@doc "添加课程"
+	@handler addCourse
+	post /api/selection/add/course/:id (SelectionAddCourseReq)
+	
+	@doc "移除课程"
+	@handler deleteCourse
+	post /api/selection/delete/course/:id (SelectionAddCourseReq)
+	
+	@doc "删除选课"
+	@handler deleteSelection
+	post /api/selection/delete/:id (SelectionIdReq)
+}
+
+@server(
+	jwt: Auth
+	middleware: StudentCheck // 仅学生可访问
+)
+service selection-api {
+	@doc "查看选课"
+	@handler getSelection
+	get /api/selection/info/:id returns (SelectionIdReq)
+	
+	@doc "选课"
+	@handler select
+	post /api/selection/select/:id (SelectCourseId)
+	
+	@doc "查看我的选课"
+	@handler mineSelections
+	get /api/selection/mine/list returns (MineCourseReply)
+}
+
+@server(
+	jwt: Auth
+	middleware: TeacherCheck // 仅教师可访问
+)
+service selection-api {
+	@doc "查看我的任教课程"
+	@handler getTeachingCourses
+	get /api/selection/teaching/courses returns (MineCourseReply)
+	
+	@doc "查看我任教课程的学生列表"
+	@handler getTeachingStudents
+	get /api/selection/teaching/students/:id (SelectCourseId)
+}

@@ -18,14 +18,13 @@
 * 点击`Create`即可。
 
 # 目录结构创建
-接下来我们按照之前提到过的[服务目录](./service-structure.md)去创建一个`service`目录，专门用于存放服务代码，然后在`service`子目录创建`user`,`schedule`,`selection`,`course`目录，创建后其目录树如下:
+接下来我们按照之前提到过的[服务目录](./service-structure.md)去创建一个`service`目录，专门用于存放服务代码，然后在`service`子目录创建`user`,`selection`,`course`目录，创建后其目录树如下:
 
 ```text
 hey-go-zero
 ├── go.mod
 └── service
     ├── course
-    ├── schedule
     ├── selection
     └── user
 ```

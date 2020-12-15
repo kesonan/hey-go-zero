@@ -9,8 +9,7 @@
     * [用户模块](user.md)
     * [课程模块](course.md)
     * [选课模块](selection.md)
-    * [排课模块](schedule.md)
 > 注意： 各模块详细描述见模块readme
 
 # 结构图
-![course-structure](../../resource/course-structure.png)
+![course-structure](../../resource/course-structure.svg)

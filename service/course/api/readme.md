@@ -113,7 +113,7 @@ service course-api {
     * 执行`goctl api go -api course.api -dir .`命令即可
     
         ```shell script
-        $ goctl api go -api user.api -dir .
+        $ goctl api go -api course.api -dir .
         ```
         ```text
         Done.
@@ -225,7 +225,7 @@ model
 * 打开`service/course/api/etc/course-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
     ```yaml
-    Name: user-api
+    Name: course-api
     Host: 0.0.0.0
     Port: 8889
     Auth:
