@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"time"
 
 	"hey-go-zero/service/selection/api/internal/svc"
 	"hey-go-zero/service/selection/api/internal/types"
@@ -52,5 +53,12 @@ func (l *EditSelectionLogic) EditSelection(req types.EditSelectionReq) error {
 	data.StartTime = req.StartTime
 	data.EndTime = req.EndTime
 	data.Notification = req.Notification
-	return l.svcCtx.SelectionModel.Update(*data)
+	err = l.svcCtx.SelectionModel.Update(*data)
+	if err != nil {
+		return err
+	}
+
+	// dq，todo：这里建议用cron-job替代，如果用dq对于这种需要变更时间的逻辑，将导致发送了多个不同时间点的message，本案例仅用于演示dq这么使用。
+	_, err = l.svcCtx.Producer.At([]byte(req.Notification), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
+	return err
 }

@@ -82,7 +82,7 @@ service selection-api {
 	
 	@doc "添加课程"
 	@handler addCourse
-	post /api/selection/add/course/:id (SelectionCourseReq)
+	post /api/selection/add/course/:selectionId (SelectionCourseReq)
 	
 	@doc "移除课程"
 	@handler deleteCourse

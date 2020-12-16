@@ -40,7 +40,7 @@ func checkCourseSelection(in types.CreateSelectionReq) error {
 		return errorx.NewDescriptionError(fmt.Sprintf("选课开始时间不能早于%s", startTime.Format("2006年01月02日 03时04分05秒")))
 	}
 
-	if in.EndTime < endTime.Unix() {
+	if in.EndTime > endTime.Unix() {
 		return errorx.NewDescriptionError(fmt.Sprintf("选课结束时间不能晚于%s", startTime.Format("2006年01月02日 03时04分05秒")))
 	}
 

@@ -26,7 +26,7 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 				},
 				{
 					Method:  http.MethodPost,
-					Path:    "/api/selection/add/course/:id",
+					Path:    "/api/selection/add/course/:selectionId",
 					Handler: addCourseHandler(serverCtx),
 				},
 				{

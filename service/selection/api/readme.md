@@ -18,131 +18,131 @@ selection
 
 ```go
 type (
-    Course {
-        Id int64 `json:"id"`
-        SelectionCourseId int64 `json:"selectionCourseId"`
-        Name string `json:"name"`
-        Description string `json:"description"`
-        Classify string `json:"classify"`
-        // 性别限制，0-不限，1-男，2-女
-        GenderLimit int `json:"genderLimit"`
-        // 可选参数，如果不传则代表不限制人数
-        MemberLimit int `json:"memberLimit"`
-        StartTime int64 `json:"startTime"`
-        // 学分
-        Credit int `json:"credit"`
-        TeacherName string `json:"teacherName"`
-    }
-
-    SelectionCourse {
-        CourseId int64 `json:"courseId"`
-        TeacherId int64 `json:"teacherId"`
-    }
-
-    SelectionCourseReq {
-        SelectionId int64 `path:"selectionId"`
-        List []*SelectionCourse `json:"list"`
-    }
-
-    DeleteSelectionCourseReq {
-        SelectionId int64 `json:"selectionId"`
-        Ids []int64 `json:"ids"`
-    }
-
-    CreateSelectionReq {
-        Name string `json:"name"`
-        MaxCredit int `json:"maxCredit,range=(0:12]"`
-        StartTime int64 `json:"startTime"`
-        EndTime int64 `json:"endTime"`
-        Notification string `json:"notification"`
-    }
-
-    EditSelectionReq {
-        Id int64 `path:"id"`
-        CreateSelectionReq
-    }
-
-    SelectionIdReq {
-        Id int64 `path:"id"`
-    }
-
-    SelectionReply {
-        Id int64 `json:"id"`
-        Name string `json:"name"`
-        MaxCredit int `json:"maxCredit"`
-        StartTime int64 `json:"startTime"`
-        EndTime int64 `json:"endTime"`
-        Notification string `json:"notification"`
-        CourseList []*Course `json:"courseList"`
-    }
-
-    SelectCourseId {
-        Id int64 `path:"id"`
-    }
-
-
-    MineCourseReply {
-        List []*Course `json:"list"`
-    }
+	Course {
+		Id int64 `json:"id"`
+		SelectionCourseId int64 `json:"selectionCourseId"`
+		Name string `json:"name"`
+		Description string `json:"description"`
+		Classify string `json:"classify"`
+		// 性别限制，0-不限，1-男，2-女
+		GenderLimit int `json:"genderLimit"`
+		// 可选参数，如果不传则代表不限制人数
+		MemberLimit int `json:"memberLimit"`
+		StartTime int64 `json:"startTime"`
+		// 学分
+		Credit int `json:"credit"`
+		TeacherName string `json:"teacherName"`
+	}
+	
+	SelectionCourse {
+		CourseId int64 `json:"courseId"`
+		TeacherId int64 `json:"teacherId"`
+	}
+	
+	SelectionCourseReq {
+		SelectionId int64 `path:"selectionId"`
+		List []*SelectionCourse `json:"list"`
+	}
+	
+	DeleteSelectionCourseReq {
+		SelectionId int64 `json:"selectionId"`
+		Ids []int64 `json:"ids"`
+	}
+	
+	CreateSelectionReq {
+		Name string `json:"name"`
+		MaxCredit int `json:"maxCredit,range=(0:12]"`
+		StartTime int64 `json:"startTime"`
+		EndTime int64 `json:"endTime"`
+		Notification string `json:"notification"`
+	}
+	
+	EditSelectionReq {
+		Id int64 `path:"id"`
+		CreateSelectionReq
+	}
+	
+	SelectionIdReq {
+		Id int64 `path:"id"`
+	}
+	
+	SelectionReply {
+		Id int64 `json:"id"`
+		Name string `json:"name"`
+		MaxCredit int `json:"maxCredit"`
+		StartTime int64 `json:"startTime"`
+		EndTime int64 `json:"endTime"`
+		Notification string `json:"notification"`
+		CourseList []*Course `json:"courseList"`
+	}
+	
+	SelectCourseId {
+		Id int64 `path:"id"`
+	}
+	
+	
+	MineCourseReply {
+		List []*Course `json:"list"`
+	}
 )
 
 @server(
-    jwt: Auth
-    middleware: ManagerCheck // 仅管理员可访问
+	jwt: Auth
+	middleware: ManagerCheck // 仅管理员可访问
 )
 service selection-api {
-    @doc "创建选课"
-    @handler createSelection
-    post /api/selection/create (CreateSelectionReq)
-
-    @doc "编辑选课"
-    @handler editSelection
-    post /api/selection/edit (EditSelectionReq)
-
-    @doc "添加课程"
-    @handler addCourse
-    post /api/selection/add/course/:id (SelectionCourseReq)
-
-    @doc "移除课程"
-    @handler deleteCourse
-    post /api/selection/delete/course (DeleteSelectionCourseReq)
-
-    @doc "删除选课"
-    @handler deleteSelection
-    post /api/selection/delete/:id (SelectionIdReq)
+	@doc "创建选课"
+	@handler createSelection
+	post /api/selection/create (CreateSelectionReq)
+	
+	@doc "编辑选课"
+	@handler editSelection
+	post /api/selection/edit (EditSelectionReq)
+	
+	@doc "添加课程"
+	@handler addCourse
+	post /api/selection/add/course/:selectionId (SelectionCourseReq)
+	
+	@doc "移除课程"
+	@handler deleteCourse
+	post /api/selection/delete/course (DeleteSelectionCourseReq)
+	
+	@doc "删除选课"
+	@handler deleteSelection
+	post /api/selection/delete/:id (SelectionIdReq)
 }
 
 @server(
-    jwt: Auth
+	jwt: Auth
 )
 service selection-api {
-    @doc "查看选课"
-    @handler getSelection
-    get /api/selection/info/:id (SelectionIdReq) returns (SelectionReply)
+	@doc "查看选课"
+	@handler getSelection
+	get /api/selection/info/:id (SelectionIdReq) returns (SelectionReply)
 }
 
 @server(
-    jwt: Auth
-    middleware: StudentCheck // 仅学生可访问
+	jwt: Auth
+	middleware: StudentCheck // 仅学生可访问
 )
 service selection-api {
-    @doc "选课"
-    @handler select
-    post /api/selection/select/:id (SelectCourseId)
-
-    @doc "查看我的选课"
-    @handler mineSelections
-    get /api/selection/mine/list returns (MineCourseReply)
+	@doc "选课"
+	@handler select
+	post /api/selection/select/:id (SelectCourseId)
+	
+	@doc "查看我的选课"
+	@handler mineSelections
+	get /api/selection/mine/list returns (MineCourseReply)
 }
 
 @server(
-    jwt: Auth
-    middleware: TeacherCheck // 仅教师可访问
+	jwt: Auth
+	middleware: TeacherCheck // 仅教师可访问
 )
 service selection-api {
-    @doc "查看我的任教课程"
-    @handler getTeachingCourses
-    get /api/selection/teaching/courses returns (MineCourseReply)
+	@doc "查看我的任教课程"
+	@handler getTeachingCourses
+	get /api/selection/teaching/courses returns (MineCourseReply)
 }
 ```
 
@@ -349,6 +349,8 @@ model
       Beanstalks:
         -
           Endpoint: 127.0.0.1:11300
+          Tube: course_select
+        - Endpoint: 127.0.0.1:11301
           Tube: course_select
       Redis:
         Host: 127.0.0.1:6379
@@ -571,9 +573,8 @@ func lengthAlert(hint string, length int) error {
     			return err
     		}
     
-    		// dq
-    		msg := fmt.Sprintf("选课【%s】还有两小时就要开始了，请提前做好选课准备。", req.Name)
-    		_, err = l.svcCtx.Producer.At([]byte(msg), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
+    		// dq，todo：这里建议用cron-job替代，如果用dq对于这种需要变更时间的逻辑，将导致发送了多个不同时间点的message，本案例仅用于演示dq这么使用。
+    		_, err = l.svcCtx.Producer.At([]byte(req.Notification), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
     
     		return err
     	default:
@@ -618,7 +619,14 @@ func lengthAlert(hint string, length int) error {
     	data.StartTime = req.StartTime
     	data.EndTime = req.EndTime
     	data.Notification = req.Notification
-    	return l.svcCtx.SelectionModel.Update(*data)
+    	err = l.svcCtx.SelectionModel.Update(*data)
+    	if err != nil {
+    		return err
+    	}
+    
+    	// dq，todo：这里建议用cron-job替代，如果用dq对于这种需要变更时间的逻辑，将导致发送了多个不同时间点的message，本案例仅用于演示dq这么使用。
+    	_, err = l.svcCtx.Producer.At([]byte(req.Notification), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
+    	return err
     }
     ```
   
@@ -1315,18 +1323,14 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
     ```shell script
     $ etcd
     ```
-* 启动beanstalkd
+* 启动两个beanstalkd
     ```shell script
     $ beanstalkd -l 127.0.0.1 -p 11300
     ```
-* 启动user-api服务
-
     ```shell script
-    $ go run user.go
+    $ beanstalkd -l 127.0.0.1 -p 11301
     ```
-    ```text
-    Starting server at 0.0.0.0:8888...
-    ```
+* 分别一次启动`user-api`、`user-rpc`、`course-api`、`course-rpc`、`selection-api`服务
 
 ### 接口验证
 * 管理员登录
@@ -1368,9 +1372,102 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 添加课程(课程模块)
     
     ```shell script
-    
+    $ curl -i -X POST \
+        http://127.0.0.1:8889/api/course/add \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTE0MjAsImlhdCI6MTYwODEwNzgyMCwiaWQiOjJ9.SKMOrt22pCN2SE0qYiKkmmcJIyr3F0U7hn04pcZLmxQ' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+      	"name":"Golang",
+      	"description":"Golang编程",
+      	"classify":"计算机",
+      	"genderLimit": 0,
+      	"memberLimit":1,
+      	"startTime":1608282661,
+      	"credit":2
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Wed, 16 Dec 2020 09:12:00 GMT
+    Content-Length: 0
     ```
 
+    > 说明：这里可以自行多加一些课程数据，就不一一演示了。
+
+* 创建选课任务
+    
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8890/api/selection/create \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTgzMjAsImlhdCI6MTYwODExNDcyMCwiaWQiOjJ9.aLhWGj7VfT2HHIW_dUFytQfJkEn055ANXgftArWM2ek' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+      	"name":"2020-2021年学期选课",
+      	"maxCredit":12,
+      	"startTime": 1608124977,
+      	"endTime":1608124977,
+      	"notification":"选课开始了"
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Wed, 16 Dec 2020 10:34:30 GMT
+    Content-Length: 0
+    ```
+  
+* 添加课程（选课）
+
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8890/api/selection/add/course/1 \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTgzMjAsImlhdCI6MTYwODExNDcyMCwiaWQiOjJ9.aLhWGj7VfT2HHIW_dUFytQfJkEn055ANXgftArWM2ek' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 2' \
+        -d '{
+      	"list":[
+      		{
+      			"courseId":3,
+      			"teacherId":4
+      		}
+      	]
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Wed, 16 Dec 2020 10:39:33 GMT
+    Content-Length: 0
+    ```
+  
+* 选课
+
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8890/api/selection/select/1 \
+        -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTg4NTcsImlhdCI6MTYwODExNTI1NywiaWQiOjF9.jcuMpRw3S5rEu97X3JpD6xmZrdYiwDwIi_d_FScvl5k' \
+        -H 'content-type: application/json' \
+        -H 'x-user-id: 1' \
+        -d '{
+      	"list":[
+      		{
+      			"courseId":3,
+      			"teacherId":4
+      		}
+      	]
+      }'
+    ```
+    ```text
+    HTTP/1.1 400 Bad Request
+    Content-Type: text/plain; charset=utf-8
+    X-Content-Type-Options: nosniff
+    Date: Wed, 16 Dec 2020 10:41:57 GMT
+    Content-Length: 16
+    
+    选课未开始
+    ```
+    > 说明：这里需要切换为学生用户登录后选课
+ 
 # 本章节贡献者
  * [anqiansong](https://github.com/anqiansong)
  

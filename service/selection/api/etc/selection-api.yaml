@@ -29,6 +29,8 @@ Dq:
     -
       Endpoint: 127.0.0.1:11300
       Tube: course_select
+    - Endpoint: 127.0.0.1:11301
+      Tube: course_select
   Redis:
     Host: 127.0.0.1:6379
     Type: node
