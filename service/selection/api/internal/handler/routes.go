@@ -31,7 +31,7 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 				},
 				{
 					Method:  http.MethodPost,
-					Path:    "/api/selection/delete/course/:id",
+					Path:    "/api/selection/delete/course",
 					Handler: deleteCourseHandler(serverCtx),
 				},
 				{
@@ -45,14 +45,20 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 	)
 
 	engine.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/api/selection/info/:id",
+				Handler: getSelectionHandler(serverCtx),
+			},
+		},
+		rest.WithJwt(serverCtx.Config.Auth.AccessSecret),
+	)
+
+	engine.AddRoutes(
 		rest.WithMiddlewares(
 			[]rest.Middleware{serverCtx.StudentCheck},
 			[]rest.Route{
-				{
-					Method:  http.MethodGet,
-					Path:    "/api/selection/info/:id",
-					Handler: getSelectionHandler(serverCtx),
-				},
 				{
 					Method:  http.MethodPost,
 					Path:    "/api/selection/select/:id",
@@ -76,11 +82,6 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 					Method:  http.MethodGet,
 					Path:    "/api/selection/teaching/courses",
 					Handler: getTeachingCoursesHandler(serverCtx),
-				},
-				{
-					Method:  http.MethodGet,
-					Path:    "/api/selection/teaching/students/:id",
-					Handler: getTeachingStudentsHandler(serverCtx),
 				},
 			}...,
 		),

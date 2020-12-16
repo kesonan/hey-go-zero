@@ -10,8 +10,25 @@ CacheRedis:
   -
     Host: 127.0.0.1:6379
     Type: node
+BizRedis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Weight: 100
 UserRpc:
   Etcd:
     Hosts:
       - 127.0.0.1:2379
     Key: user.rpc
+CourseRpc:
+  Etcd:
+    Hosts:
+      - 127.0.0.1:2379
+    Key: course.rpc
+Dq:
+  Beanstalks:
+    -
+      Endpoint: 127.0.0.1:11300
+      Tube: course_select
+  Redis:
+    Host: 127.0.0.1:6379
+    Type: node

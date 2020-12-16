@@ -810,7 +810,7 @@ return middleware.UserCheck(next)
     ```
  
  # 本章节贡献者
- * [songmeizi](https://github.com/songmeizi)
+ * [anqiansong](https://github.com/anqiansong)
  
  # 技术点总结
  * [正则表达式](https://github.com/ziishaned/learn-regex)
@@ -833,6 +833,5 @@ return middleware.UserCheck(next)
 你可能会浏览 
 * [课程模块](../../../doc/requirement/course.md)
 * [选课模块](../../../doc/requirement/selection.md)
-* [排课模块](../../../doc/requirement/schedule.md)
  
  

@@ -15,88 +15,81 @@ course
 
 ```go
 info(
-	title: "课程管理api"
-	desc: "描述课程添加、编辑、删除、查看等协议"
-	author: "松妹子"
-	version: "V1.0"
+    title: "课程管理api"
+    desc: "描述课程添加、编辑、删除、查看等协议"
+    author: "松妹子"
+    version: "V1.0"
 )
 
 type (
-	Course {
-		Name string `json:"name"`
-		Description string `json:"description,optional"`
-		Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
-		// 性别限制，0-不限，1-男，2-女
-		GenderLimit int `json:"genderLimit,options=0|1|2"`
-		// 可选参数，如果不传则代表不限制人数
-		MemberLimit MemberLimit `json:"memberLimit,optional"`
-		StartTime int64 `json:"startTime"`
-		// 学分
-		Credit int `json:"credit,range=(0:6]"`
-	}
+    Course {
+        Name string `json:"name"`
+        Description string `json:"description,optional"`
+        Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
+        // 性别限制，0-不限，1-男，2-女
+        GenderLimit int `json:"genderLimit,options=0|1|2"`
+        // 可选参数，如果不传则代表不限制人数
+        MemberLimit int `json:"memberLimit,optional"`
+        StartTime int64 `json:"startTime"`
+        // 学分
+        Credit int `json:"credit,range=(0:6]"`
+    }
 
-	MemberLimit {
-		// 男生限制人数 <=0：不限
-		MaleCount int `json:"maleCount"`
-		// 女生限制人数 <=0：不限
-		FemaleCount int `json:"femaleCount"`
-	}
+    AddCourseReq {
+        Course
+    }
 
-	AddCourseReq {
-		Course
-	}
-	
-	EditCourseReq {
-		Id int64 `path:"id"`
-		Course
-	}
-	
-	DeleteCourseReq {
-		Id int64 `path:"id"`
-	}
-	
-	CourseInfoReq {
-		Id int64 `path:"id"`
-	}
-	
-	CourseInfoReply {
-		Id int64 `json:"id"`
-		Course
-	}
-	
-	CourseListReq {
-		Page int `form:"page,range=(0:]"`
-		Size int `form:"size,range=(0:]"`
-	}
-	
-	CourseListReply {
-		// 总条数
-		Total int `json:"total"`
-		// 当前返回数量，即list.length
-		Size int `json:"size"`
-		List []*CourseInfoReply `json:"list"`
-	}
+    EditCourseReq {
+        Id int64 `path:"id"`
+        Course
+    }
+
+    DeleteCourseReq {
+        Id int64 `path:"id"`
+    }
+
+    CourseInfoReq {
+        Id int64 `path:"id"`
+    }
+
+    CourseInfoReply {
+        Id int64 `json:"id"`
+        Course
+    }
+
+    CourseListReq {
+        Page int `form:"page,range=(0:]"`
+        Size int `form:"size,range=(0:]"`
+    }
+
+    CourseListReply {
+        // 总条数
+        Total int `json:"total"`
+        // 当前返回数量，即list.length
+        Size int `json:"size"`
+        List []*CourseInfoReply `json:"list"`
+    }
 )
 
 @server(
-	jwt: Auth
-	middleware: AuthMiddleware
+    jwt: Auth
+    middleware: AuthMiddleware
 )
 service course-api {
-	@handler addCourse
-	post /api/course/add (AddCourseReq)
-	
-	@handler editCourse
-	post /api/course/edit/:id (EditCourseReq)
-	
-	@handler deleteCourse
-	post /api/course/delete/:id (DeleteCourseReq)
-	
-	@handler getCourseInfo
-	get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
-	
-	@handler getCourseList
-	get /api/course/list (CourseListReq) returns (CourseListReply)
+    @handler addCourse
+    post /api/course/add (AddCourseReq)
+
+    @handler editCourse
+    post /api/course/edit/:id (EditCourseReq)
+
+    @handler deleteCourse
+    post /api/course/delete/:id (DeleteCourseReq)
+
+    @handler getCourseInfo
+    get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
+
+    @handler getCourseList
+    get /api/course/list (CourseListReq) returns (CourseListReply)
 }
 ```
 
@@ -168,8 +161,7 @@ CREATE TABLE `course` (
   `description` varchar(500) COLLATE utf8mb4_general_ci DEFAULT '' COMMENT '书籍描述',
   `classify` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '书籍分类，目前仅支持 【天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机】',
   `gender_limit` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别限制 0-不限，1-男，2-女',
-  `male_limit` int DEFAULT '0' COMMENT '男生限制人数 0-不限',
-  `female_limit` int DEFAULT '0' COMMENT '女生限制人数 0-不限',
+  `member_limit` int DEFAULT '0' COMMENT '限制人数.0-不限',
   `start_time` int NOT NULL DEFAULT '0' COMMENT '开课时间，时间戳，单位：秒',
   `credit` tinyint(1) NOT NULL DEFAULT '1' COMMENT '学分',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -323,10 +315,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 		Description: data.Description,
 		Classify:    data.Classify,
 		GenderLimit: int(data.GenderLimit),
-		MemberLimit: types.MemberLimit{
-			MaleCount:   int(data.MaleLimit),
-			FemaleCount: int(data.FemaleLimit),
-		},
+		MemberLimit: int(data.MemberLimit),
 		StartTime: data.StartTime,
 		Credit:    int(data.Credit),
 	}
@@ -340,38 +329,33 @@ func convertFromDbToLogic(data model.Course) types.Course {
 
     ```go
     func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
-        if err := l.parametersCheck(req); err != nil {
-            return err
-        }
+    	if err := l.parametersCheck(req); err != nil {
+    		return err
+    	}
     
-        // 如果数量小于等于0则为不限
-        if req.MemberLimit.MaleCount < 0 {
-            req.MemberLimit.MaleCount = 0
-        }
-  
-        if req.MemberLimit.FemaleCount < 0 {
-            req.MemberLimit.FemaleCount = 0
-        }
+    	// 如果数量小于等于0则为不限
+    	if req.MemberLimit < 0 {
+    		req.MemberLimit = 0
+    	}
     
-        _, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
-        switch err {
-        case nil:
-            return errorx.NewDescriptionError("课程已存在")
-        case model.ErrNotFound:
-            _, err = l.svcCtx.CourseModel.Insert(model.Course{
-                Name:        req.Name,
-                Description: req.Description,
-                Classify:    req.Classify,
-                GenderLimit: int64(req.GenderLimit),
-                MaleLimit:   int64(req.MemberLimit.MaleCount),
-                FemaleLimit: int64(req.MemberLimit.FemaleCount),
-                StartTime:   req.StartTime,
-                Credit:      int64(req.Credit),
-            })
-            return err
-        default:
-            return err
-        }
+    	_, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
+    	switch err {
+    	case nil:
+    		return errorx.NewDescriptionError("课程已存在")
+    	case model.ErrNotFound:
+    		_, err = l.svcCtx.CourseModel.Insert(model.Course{
+    			Name:        req.Name,
+    			Description: req.Description,
+    			Classify:    req.Classify,
+    			GenderLimit: int64(req.GenderLimit),
+    			MemberLimit:   int64(req.MemberLimit),
+    			StartTime:   req.StartTime,
+    			Credit:      int64(req.Credit),
+    		})
+    		return err
+    	default:
+    		return err
+    	}
     }
     
     func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
@@ -410,27 +394,26 @@ func convertFromDbToLogic(data model.Course) types.Course {
 
     ```go
     func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
-        if err := l.parametersCheck(req); err != nil {
-            return err
-        }
-        
-        data, err := l.svcCtx.CourseModel.FindOne(req.Id)
-        switch err {
-        case nil:
-            data.Name = req.Name
-            data.Description = req.Description
-            data.Classify = req.Classify
-            data.GenderLimit = int64(req.GenderLimit)
-            data.MaleLimit = int64(req.MemberLimit.MaleCount)
-            data.FemaleLimit = int64(req.MemberLimit.FemaleCount)
-            data.StartTime = req.StartTime
-            data.Credit = int64(req.Credit)
-            return l.svcCtx.CourseModel.Update(*data)
-        case model.ErrNotFound:
-            return errCourseNotFound
-        default:
-            return err
-        }
+    	if err := l.parametersCheck(req); err != nil {
+    		return err
+    	}
+    
+    	data, err := l.svcCtx.CourseModel.FindOne(req.Id)
+    	switch err {
+    	case nil:
+    		data.Name = req.Name
+    		data.Description = req.Description
+    		data.Classify = req.Classify
+    		data.GenderLimit = int64(req.GenderLimit)
+    		data.MemberLimit = int64(req.MemberLimit)
+    		data.StartTime = req.StartTime
+    		data.Credit = int64(req.Credit)
+    		return l.svcCtx.CourseModel.Update(*data)
+    	case model.ErrNotFound:
+    		return errCourseNotFound
+    	default:
+    		return err
+    	}
     }
     
     func (l *EditCourseLogic) parametersCheck(req types.EditCourseReq) error {
@@ -967,7 +950,7 @@ Content-Length: 178
     Date: Sun, 13 Dec 2020 13:22:51 GMT
     Content-Length: 241
     
-    {"total":1,"size":1,"list":[{"id":2,"name":"Golang语言开发","description":"Golang语言开发从入门到放弃！","classify":"互联网","genderLimit":0,"memberLimit":{"maleCount":0,"femaleCount":0},"startTime":1607911200,"credit":1}]}
+    {"total":1,"size":1,"list":[{"id":2,"name":"Golang语言开发","description":"Golang语言开发从入门到放弃！","classify":"互联网","genderLimit":0,"memberLimit":0,"startTime":1607911200,"credit":1}]}
     ```
 * 删除课程
     
@@ -987,7 +970,7 @@ Content-Length: 178
 > 说明：以上请求中的id以开发人员实际数据库为准。
 
 # 本章节贡献者
- * [songmeizi](https://github.com/songmeizi)
+ * [anqiansong](https://github.com/anqiansong)
  
  # 技术点总结
  * go-zero中间件使用
@@ -1009,7 +992,6 @@ Content-Length: 178
 你可能会浏览 
 * [用户模块](../../../doc/requirement/user.md)
 * [选课模块](../../../doc/requirement/selection.md)
-* [排课模块](../../../doc/requirement/schedule.md)
 
 
 

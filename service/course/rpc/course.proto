@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package course;
+
+message IdReq {
+  int64 id = 1;
+}
+
+message IdsReq {
+  repeated int64 ids = 1;
+}
+
+enum GenderLimit {
+  NoLimit = 0;
+  Male = 1;
+  Female = 2;
+}
+
+message Course {
+  int64 id = 1;
+  // 名称
+  string name = 2;
+  // 描述
+  string description = 3;
+  // 分类
+  string classify = 4;
+  // 性别限制
+  GenderLimit genderLimit = 5;
+  // 限制人数
+  int64 memberLimit = 6;
+  // 开课时间
+  int64 startTime = 7;
+  // 当前课程学分
+  int64 credit = 8;
+}
+
+message CourseListReply {
+  repeated Course list = 1;
+}
+
+service CourseService{
+  // 查询课程
+  rpc findOne(IdReq)returns(Course);
+  // 批量获取课程
+  rpc findByIds(IdsReq)returns(CourseListReply);
+}

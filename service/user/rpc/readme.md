@@ -66,9 +66,9 @@ service UserService {
 
 ```shell script
 $  goctl rpc proto -src user.proto -dir .
-  protoc  -I=/Users/xxx/goland/go/hey-go-zero/service/user/rpc user.proto --go_out=plugins=grpc:/Users/xxx/goland/go/hey-go-zero/service/user/rpc/user
 ```
 ```text
+protoc  -I=/Users/xxx/goland/go/hey-go-zero/service/user/rpc user.proto --go_out=plugins=grpc:/Users/xxx/goland/go/hey-go-zero/service/user/rpc/user
 Done.
 ```
 
@@ -174,7 +174,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 ## 添加一个common.go文件
 由于我们不同的方法都是有不同的struct包裹，因此不同logic需要实现共同逻辑时不太灵活，我们这里用一个`静态`型的通用文件去实现这些共同逻辑，然后不同的logic中去访问。
-* 添加`convertUserFromDbToPb`方法，填充代码：
+* 在`service/user/rpc/internal/logic`目录中创建`common.go`添加`convertUserFromDbToPb`方法，填充代码：
 
     ```go
     func convertUserFromDbToPb(in *model.User) *user.UserReply {
@@ -275,3 +275,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
     	return &resp, nil
     }
     ```
+你可能会浏览
+* [用户模块](../../../doc/requirement/user.md)
+* [选课模块](../../../doc/requirement/selection.md)

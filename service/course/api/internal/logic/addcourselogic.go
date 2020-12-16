@@ -49,12 +49,8 @@ func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
 	}
 
 	// 如果数量小于等于0则为不限
-	if req.MemberLimit.MaleCount < 0 {
-		req.MemberLimit.MaleCount = 0
-	}
-
-	if req.MemberLimit.FemaleCount < 0 {
-		req.MemberLimit.FemaleCount = 0
+	if req.MemberLimit < 0 {
+		req.MemberLimit = 0
 	}
 
 	_, err := l.svcCtx.CourseModel.FindOneByName(req.Name)
@@ -67,8 +63,7 @@ func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
 			Description: req.Description,
 			Classify:    req.Classify,
 			GenderLimit: int64(req.GenderLimit),
-			MaleLimit:   int64(req.MemberLimit.MaleCount),
-			FemaleLimit: int64(req.MemberLimit.FemaleCount),
+			MemberLimit: int64(req.MemberLimit),
 			StartTime:   req.StartTime,
 			Credit:      int64(req.Credit),
 		})

@@ -28,6 +28,9 @@ type (
 		FindOne(id int64) (*SelectionStudent, error)
 		Update(data SelectionStudent) error
 		Delete(id int64) error
+		FindByStudentId(studentId int64) ([]*SelectionStudent, error)
+		FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error)
+		FindByStudentIdAndSelectionCourseId(studentId, selectionCourseId int64) (*SelectionStudent, error)
 	}
 
 	defaultSelectionStudentModel struct {
@@ -92,6 +95,27 @@ func (m *defaultSelectionStudentModel) Delete(id int64) error {
 		return conn.Exec(query, id)
 	}, selectionStudentIdKey)
 	return err
+}
+
+func (m *defaultSelectionStudentModel) FindByStudentId(studentId int64) ([]*SelectionStudent, error) {
+	query := fmt.Sprintf("select %s from %s where student_id = ?", selectionStudentRows, m.table)
+	var resp []*SelectionStudent
+	err := m.QueryRowsNoCache(&resp, query, studentId)
+	return resp, err
+}
+
+func (m *defaultSelectionStudentModel) FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error) {
+	query := fmt.Sprintf("select %s from %s where selection_course_id = ?", selectionStudentRows, m.table)
+	var resp []*SelectionStudent
+	err := m.QueryRowNoCache(&resp, query, selectionCourseId)
+	return resp, err
+}
+
+func (m *defaultSelectionStudentModel) FindByStudentIdAndSelectionCourseId(studentId, selectionCourseId int64) (*SelectionStudent, error) {
+	query := fmt.Sprintf("select %s from %s where student_id = ? and selection_course_id = ? limit 1", selectionStudentRows, m.table)
+	var resp SelectionStudent
+	err := m.QueryRowNoCache(&resp, query, studentId, selectionCourseId)
+	return &resp, err
 }
 
 func (m *defaultSelectionStudentModel) formatPrimary(primary interface{}) string {

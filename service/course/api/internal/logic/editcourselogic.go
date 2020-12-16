@@ -55,8 +55,7 @@ func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
 		data.Description = req.Description
 		data.Classify = req.Classify
 		data.GenderLimit = int64(req.GenderLimit)
-		data.MaleLimit = int64(req.MemberLimit.MaleCount)
-		data.FemaleLimit = int64(req.MemberLimit.FemaleCount)
+		data.MemberLimit = int64(req.MemberLimit)
 		data.StartTime = req.StartTime
 		data.Credit = int64(req.Credit)
 		return l.svcCtx.CourseModel.Update(*data)

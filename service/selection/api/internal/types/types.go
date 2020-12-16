@@ -2,15 +2,16 @@
 package types
 
 type Course struct {
-	Id          int64       `json:"id"`
-	Name        string      `json:"name"`
-	Description string      `json:"description"`
-	Classify    string      `json:"classify"`
-	GenderLimit int         `json:"genderLimit"`
-	MemberLimit MemberLimit `json:"memberLimit"`
-	StartTime   int64       `json:"startTime"`
-	Credit      int         `json:"credit"`
-	TeacherName string      `json:"teacherName"`
+	Id                int64  `json:"id"`
+	SelectionCourseId int64  `json:"selectionCourseId"`
+	Name              string `json:"name"`
+	Description       string `json:"description"`
+	Classify          string `json:"classify"`
+	GenderLimit       int    `json:"genderLimit"`
+	MemberLimit       int    `json:"memberLimit"`
+	StartTime         int64  `json:"startTime"`
+	Credit            int    `json:"credit"`
+	TeacherName       string `json:"teacherName"`
 }
 
 type CreateSelectionReq struct {
@@ -21,14 +22,14 @@ type CreateSelectionReq struct {
 	Notification string `json:"notification"`
 }
 
+type DeleteSelectionCourseReq struct {
+	SelectionId int64   `json:"selectionId"`
+	Ids         []int64 `json:"ids"`
+}
+
 type EditSelectionReq struct {
 	Id int64 `path:"id"`
 	CreateSelectionReq
-}
-
-type MemberLimit struct {
-	MaleCount   int `json:"maleCount"`
-	FemaleCount int `json:"femaleCount"`
 }
 
 type MineCourseReply struct {
@@ -39,14 +40,14 @@ type SelectCourseId struct {
 	Id int64 `path:"id"`
 }
 
-type SelectionAddCourseReq struct {
-	SelectionId int64              `path:"selectionId"`
-	List        []*SelectionCourse `json:"list"`
-}
-
 type SelectionCourse struct {
 	CourseId  int64 `json:"courseId"`
 	TeacherId int64 `json:"teacherId"`
+}
+
+type SelectionCourseReq struct {
+	SelectionId int64              `path:"selectionId"`
+	List        []*SelectionCourse `json:"list"`
 }
 
 type SelectionIdReq struct {
@@ -54,6 +55,7 @@ type SelectionIdReq struct {
 }
 
 type SelectionReply struct {
+	Id           int64     `json:"id"`
 	Name         string    `json:"name"`
 	MaxCredit    int       `json:"maxCredit"`
 	StartTime    int64     `json:"startTime"`

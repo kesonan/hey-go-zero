@@ -15,18 +15,19 @@
 package logic
 
 import (
-	"hey-go-zero/service/course/api/internal/types"
 	"hey-go-zero/service/course/model"
+	"hey-go-zero/service/course/rpc/course"
 )
 
-func convertFromDbToLogic(data model.Course) types.Course {
-	return types.Course{
-		Name:        data.Name,
-		Description: data.Description,
-		Classify:    data.Classify,
-		GenderLimit: int(data.GenderLimit),
-		MemberLimit: int(data.MemberLimit),
-		StartTime:   data.StartTime,
-		Credit:      int(data.Credit),
-	}
+func convertCourseFromDbToPb(in *model.Course) *course.Course {
+	var resp course.Course
+	resp.Id = in.Id
+	resp.Name = in.Name
+	resp.Description = in.Description
+	resp.Classify = in.Classify
+	resp.GenderLimit = course.GenderLimit(in.GenderLimit)
+	resp.MemberLimit = in.MemberLimit
+	resp.StartTime = in.StartTime
+	resp.Credit = in.Credit
+	return &resp
 }

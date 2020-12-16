@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/sqlc"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
@@ -28,6 +29,9 @@ type (
 		FindOne(id int64) (*SelectionCourse, error)
 		Update(data SelectionCourse) error
 		Delete(id int64) error
+		FindBySelectionId(selectionId int64) ([]*SelectionCourse, error)
+		FindByTeacherId(teacherId int64) ([]*SelectionCourse, error)
+		DeleteBySelectionId(selectionId int64) error
 	}
 
 	defaultSelectionCourseModel struct {
@@ -92,6 +96,38 @@ func (m *defaultSelectionCourseModel) Delete(id int64) error {
 		query := fmt.Sprintf("delete from %s where id = ?", m.table)
 		return conn.Exec(query, id)
 	}, selectionCourseIdKey)
+	return err
+}
+
+func (m *defaultSelectionCourseModel) FindBySelectionId(selectionId int64) ([]*SelectionCourse, error) {
+	query := fmt.Sprintf("select %s from %s where selection_id = ?", selectionCourseRows, m.table)
+	var resp []*SelectionCourse
+	err := m.QueryRowsNoCache(&resp, query, selectionId)
+	return resp, err
+}
+
+func (m *defaultSelectionCourseModel) FindByTeacherId(teacherId int64) ([]*SelectionCourse, error) {
+	query := fmt.Sprintf("select %s from %s where teacher_id = ?", selectionCourseRows, m.table)
+	var resp []*SelectionCourse
+	err := m.QueryRowsNoCache(&resp, query, teacherId)
+	return resp, err
+}
+
+func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) error {
+	list, err := m.FindBySelectionId(selectionId)
+	if err != nil {
+		return err
+	}
+
+	keys := collection.NewSet()
+	for _, item := range list {
+		keys.AddStr(m.formatPrimary(item.Id))
+	}
+	query := fmt.Sprintf("delete from %s where selection_id = ?", m.table)
+	_, err = m.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+		return conn.Exec(query, selectionId)
+	}, keys.KeysStr()...)
+
 	return err
 }
 

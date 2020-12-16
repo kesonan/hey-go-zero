@@ -5,6 +5,7 @@ import (
 
 	"hey-go-zero/service/selection/api/internal/svc"
 	"hey-go-zero/service/selection/api/internal/types"
+	"hey-go-zero/service/selection/model"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -24,7 +25,32 @@ func NewEditSelectionLogic(ctx context.Context, svcCtx *svc.ServiceContext) Edit
 }
 
 func (l *EditSelectionLogic) EditSelection(req types.EditSelectionReq) error {
-	// todo: add your logic here and delete this line
+	if err := checkCourseSelection(req.CreateSelectionReq); err != nil {
+		return err
+	}
+	data, err := l.svcCtx.SelectionModel.FindOne(req.Id)
+	if err != nil {
+		if err == model.ErrNotFound {
+			return errSelectionNotFound
+		}
+		return err
+	}
 
-	return nil
+	nameData, err := l.svcCtx.SelectionModel.FindOneByName(req.Name)
+	if err != nil {
+		if err == model.ErrNotFound {
+			return err
+		}
+	} else {
+		if nameData.Id != req.Id {
+			return errSelectionIsExists
+		}
+	}
+
+	data.Name = req.Name
+	data.MaxCredit = int64(req.MaxCredit)
+	data.StartTime = req.StartTime
+	data.EndTime = req.EndTime
+	data.Notification = req.Notification
+	return l.svcCtx.SelectionModel.Update(*data)
 }

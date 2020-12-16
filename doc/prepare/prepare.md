@@ -7,6 +7,7 @@
     * Etcd
     * Redis
     * Postman
+    * Beanstalkd
     
 
 # Go语言环境
@@ -226,6 +227,33 @@ redis-cli 6.0.6
 # Postman安装(可选)
 为了方便接口测试，这里建议大家安装一下postman工具，方便后期api调试，当然你也可以使用其他工具如`curl`、Idea工具中的
 `Http Client`等，选择一个你熟悉的工具即可。
+
+# Beanstalk安装
+
+```shell script
+$ brew install beanstalkd
+```
+```text
+==> Downloading https://mirrors.ustc.edu.cn/homebrew-bottles/bottles/beanstalkd-1.12.mojave.bottle.tar.gz
+######################################################################## 100.0%
+==> Pouring beanstalkd-1.12.mojave.bottle.tar.gz
+==> Caveats
+To have launchd start beanstalkd now and restart at login:
+  brew services start beanstalkd
+Or, if you don't want/need a background service you can just run:
+  beanstalkd
+==> Summary
+🍺  /usr/local/Cellar/beanstalkd/1.12: 8 files, 65.4KB
+```
+
+```shell script
+$ beanstalkd -v
+```
+```text
+beanstalkd 1.12
+```
+
+>说明：windows安装教程请[下载安装](https://beanstalkd.github.io/download.html)
 
 # End
 

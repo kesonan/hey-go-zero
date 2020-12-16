@@ -1,20 +1,14 @@
 type (
-	MemberLimit {
-		// 男生限制人数 <=0：不限
-		MaleCount int `json:"maleCount"`
-		// 女生限制人数 <=0：不限
-		FemaleCount int `json:"femaleCount"`
-	}
-	
 	Course {
 		Id int64 `json:"id"`
+		SelectionCourseId int64 `json:"selectionCourseId"`
 		Name string `json:"name"`
 		Description string `json:"description"`
 		Classify string `json:"classify"`
 		// 性别限制，0-不限，1-男，2-女
 		GenderLimit int `json:"genderLimit"`
 		// 可选参数，如果不传则代表不限制人数
-		MemberLimit MemberLimit `json:"memberLimit"`
+		MemberLimit int `json:"memberLimit"`
 		StartTime int64 `json:"startTime"`
 		// 学分
 		Credit int `json:"credit"`
@@ -26,9 +20,14 @@ type (
 		TeacherId int64 `json:"teacherId"`
 	}
 	
-	SelectionAddCourseReq {
+	SelectionCourseReq {
 		SelectionId int64 `path:"selectionId"`
 		List []*SelectionCourse `json:"list"`
+	}
+	
+	DeleteSelectionCourseReq {
+		SelectionId int64 `json:"selectionId"`
+		Ids []int64 `json:"ids"`
 	}
 	
 	CreateSelectionReq {
@@ -49,6 +48,7 @@ type (
 	}
 	
 	SelectionReply {
+		Id int64 `json:"id"`
 		Name string `json:"name"`
 		MaxCredit int `json:"maxCredit"`
 		StartTime int64 `json:"startTime"`
@@ -60,6 +60,7 @@ type (
 	SelectCourseId {
 		Id int64 `path:"id"`
 	}
+	
 	
 	MineCourseReply {
 		List []*Course `json:"list"`
@@ -81,11 +82,11 @@ service selection-api {
 	
 	@doc "添加课程"
 	@handler addCourse
-	post /api/selection/add/course/:id (SelectionAddCourseReq)
+	post /api/selection/add/course/:id (SelectionCourseReq)
 	
 	@doc "移除课程"
 	@handler deleteCourse
-	post /api/selection/delete/course/:id (SelectionAddCourseReq)
+	post /api/selection/delete/course (DeleteSelectionCourseReq)
 	
 	@doc "删除选课"
 	@handler deleteSelection
@@ -94,13 +95,18 @@ service selection-api {
 
 @server(
 	jwt: Auth
-	middleware: StudentCheck // 仅学生可访问
 )
 service selection-api {
 	@doc "查看选课"
 	@handler getSelection
-	get /api/selection/info/:id returns (SelectionIdReq)
-	
+	get /api/selection/info/:id (SelectionIdReq) returns (SelectionReply)
+}
+
+@server(
+	jwt: Auth
+	middleware: StudentCheck // 仅学生可访问
+)
+service selection-api {
 	@doc "选课"
 	@handler select
 	post /api/selection/select/:id (SelectCourseId)
@@ -118,8 +124,4 @@ service selection-api {
 	@doc "查看我的任教课程"
 	@handler getTeachingCourses
 	get /api/selection/teaching/courses returns (MineCourseReply)
-	
-	@doc "查看我任教课程的学生列表"
-	@handler getTeachingStudents
-	get /api/selection/teaching/students/:id (SelectCourseId)
 }

@@ -17,6 +17,7 @@
 * Redis
 * Protoc&Protoc-gen-go
 * Postman
+* Beanstalkd
 
 # 集成依赖
 * go-zero（core）
@@ -30,6 +31,7 @@
 * Redis-cli 6.0.6
 * Protoc: libprotoc 3.14.0
 * Protoc-gen-go
+* beanstalkd 1.12
 
 # 常见概念介绍
 `$` 代表一个shell命令/可执行文件开始，如

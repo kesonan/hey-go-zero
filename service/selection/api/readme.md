@@ -18,129 +18,131 @@ selection
 
 ```go
 type (
-	MemberLimit {
-		// 男生限制人数 <=0：不限
-		MaleCount int `json:"maleCount"`
-		// 女生限制人数 <=0：不限
-		FemaleCount int `json:"femaleCount"`
-	}
-	
-	Course {
-		Id int64 `json:"id"`
-		Name string `json:"name"`
-		Description string `json:"description"`
-		Classify string `json:"classify"`
-		// 性别限制，0-不限，1-男，2-女
-		GenderLimit int `json:"genderLimit"`
-		// 可选参数，如果不传则代表不限制人数
-		MemberLimit MemberLimit `json:"memberLimit"`
-		StartTime int64 `json:"startTime"`
-		// 学分
-		Credit int `json:"credit"`
-		TeacherName string `json:"teacherName"`
-	}
-	
-	SelectionCourse {
-		CourseId int64 `json:"courseId"`
-		TeacherId int64 `json:"teacherId"`
-	}
-	
-	SelectionAddCourseReq {
-		SelectionId int64 `path:"selectionId"`
-		List []*SelectionCourse `json:"list"`
-	}
-	
-	CreateSelectionReq {
-		Name string `json:"name"`
-		MaxCredit int `json:"maxCredit,range=(0:12]"`
-		StartTime int64 `json:"startTime"`
-		EndTime int64 `json:"endTime"`
-		Notification string `json:"notification"`
-	}
-	
-	EditSelectionReq {
-		Id int64 `path:"id"`
-		CreateSelectionReq
-	}
-	
-	SelectionIdReq {
-		Id int64 `path:"id"`
-	}
-	
-	SelectionReply {
-		Name string `json:"name"`
-		MaxCredit int `json:"maxCredit"`
-		StartTime int64 `json:"startTime"`
-		EndTime int64 `json:"endTime"`
-		Notification string `json:"notification"`
-		CourseList []*Course `json:"courseList"`
-	}
-	
-	SelectCourseId {
-		Id int64 `path:"id"`
-	}
-	
-	MineCourseReply {
-		List []*Course `json:"list"`
-	}
+    Course {
+        Id int64 `json:"id"`
+        SelectionCourseId int64 `json:"selectionCourseId"`
+        Name string `json:"name"`
+        Description string `json:"description"`
+        Classify string `json:"classify"`
+        // 性别限制，0-不限，1-男，2-女
+        GenderLimit int `json:"genderLimit"`
+        // 可选参数，如果不传则代表不限制人数
+        MemberLimit int `json:"memberLimit"`
+        StartTime int64 `json:"startTime"`
+        // 学分
+        Credit int `json:"credit"`
+        TeacherName string `json:"teacherName"`
+    }
+
+    SelectionCourse {
+        CourseId int64 `json:"courseId"`
+        TeacherId int64 `json:"teacherId"`
+    }
+
+    SelectionCourseReq {
+        SelectionId int64 `path:"selectionId"`
+        List []*SelectionCourse `json:"list"`
+    }
+
+    DeleteSelectionCourseReq {
+        SelectionId int64 `json:"selectionId"`
+        Ids []int64 `json:"ids"`
+    }
+
+    CreateSelectionReq {
+        Name string `json:"name"`
+        MaxCredit int `json:"maxCredit,range=(0:12]"`
+        StartTime int64 `json:"startTime"`
+        EndTime int64 `json:"endTime"`
+        Notification string `json:"notification"`
+    }
+
+    EditSelectionReq {
+        Id int64 `path:"id"`
+        CreateSelectionReq
+    }
+
+    SelectionIdReq {
+        Id int64 `path:"id"`
+    }
+
+    SelectionReply {
+        Id int64 `json:"id"`
+        Name string `json:"name"`
+        MaxCredit int `json:"maxCredit"`
+        StartTime int64 `json:"startTime"`
+        EndTime int64 `json:"endTime"`
+        Notification string `json:"notification"`
+        CourseList []*Course `json:"courseList"`
+    }
+
+    SelectCourseId {
+        Id int64 `path:"id"`
+    }
+
+
+    MineCourseReply {
+        List []*Course `json:"list"`
+    }
 )
 
 @server(
-	jwt: Auth
-	middleware: ManagerCheck // 仅管理员可访问
+    jwt: Auth
+    middleware: ManagerCheck // 仅管理员可访问
 )
 service selection-api {
-	@doc "创建选课"
-	@handler createSelection
-	post /api/selection/create (CreateSelectionReq)
-	
-	@doc "编辑选课"
-	@handler editSelection
-	post /api/selection/edit (EditSelectionReq)
-	
-	@doc "添加课程"
-	@handler addCourse
-	post /api/selection/add/course/:id (SelectionAddCourseReq)
-	
-	@doc "移除课程"
-	@handler deleteCourse
-	post /api/selection/delete/course/:id (SelectionAddCourseReq)
-	
-	@doc "删除选课"
-	@handler deleteSelection
-	post /api/selection/delete/:id (SelectionIdReq)
+    @doc "创建选课"
+    @handler createSelection
+    post /api/selection/create (CreateSelectionReq)
+
+    @doc "编辑选课"
+    @handler editSelection
+    post /api/selection/edit (EditSelectionReq)
+
+    @doc "添加课程"
+    @handler addCourse
+    post /api/selection/add/course/:id (SelectionCourseReq)
+
+    @doc "移除课程"
+    @handler deleteCourse
+    post /api/selection/delete/course (DeleteSelectionCourseReq)
+
+    @doc "删除选课"
+    @handler deleteSelection
+    post /api/selection/delete/:id (SelectionIdReq)
 }
 
 @server(
-	jwt: Auth
-	middleware: StudentCheck // 仅学生可访问
+    jwt: Auth
 )
 service selection-api {
-	@doc "查看选课"
-	@handler getSelection
-	get /api/selection/info/:id returns (SelectionIdReq)
-	
-	@doc "选课"
-	@handler select
-	post /api/selection/select/:id (SelectCourseId)
-	
-	@doc "查看我的选课"
-	@handler mineSelections
-	get /api/selection/mine/list returns (MineCourseReply)
+    @doc "查看选课"
+    @handler getSelection
+    get /api/selection/info/:id (SelectionIdReq) returns (SelectionReply)
 }
 
 @server(
-	jwt: Auth
-	middleware: TeacherCheck // 仅教师可访问
+    jwt: Auth
+    middleware: StudentCheck // 仅学生可访问
 )
 service selection-api {
-	@doc "查看我的任教课程"
-	@handler getTeachingCourses
-	get /api/selection/teaching/courses returns (MineCourseReply)
-	
-	@doc "查看我任教课程的学生列表"
-	@handler getTeachingStudents
-	get /api/selection/teaching/students/:id (SelectCourseId)
+    @doc "选课"
+    @handler select
+    post /api/selection/select/:id (SelectCourseId)
+
+    @doc "查看我的选课"
+    @handler mineSelections
+    get /api/selection/mine/list returns (MineCourseReply)
+}
+
+@server(
+    jwt: Auth
+    middleware: TeacherCheck // 仅教师可访问
+)
+service selection-api {
+    @doc "查看我的任教课程"
+    @handler getTeachingCourses
+    get /api/selection/teaching/courses returns (MineCourseReply)
 }
 ```
 
@@ -280,13 +282,18 @@ model
 
 > 说明：本地生成的`goctl`版本为`goctl version 20201125 darwin/amd64`，早起版本生成出来的数值类型会有`int`，`int64`，而后续版本统一为`int64`了。
 
+# 创建course.rpc服务
+由于选课需要查询用户信息、课程信息，因此我们需要用到rpc来进行服务间的通信，在course-api我们已经创建过[user.rpc](../../user/rpc/readme.md)服务了，在这里再去创建一个course.rpc服务，
+[点击这里](../../course/rpc/readme.md)进入[course.rpc](../../course/rpc/readme.md)服务创建流程。
+
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
-* 编打开`service/course/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
+* 编打开`service/course/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`、`BizRedis`、UserRpc`、`CourseRpc`、`Dq`定义
 
     ```go
     package config
     
     import (
+    	"github.com/tal-tech/go-queue/dq"
     	"github.com/tal-tech/go-zero/core/stores/cache"
     	"github.com/tal-tech/go-zero/rest"
     	"github.com/tal-tech/go-zero/zrpc"
@@ -302,7 +309,10 @@ model
     		DataSource string
     	}
     	CacheRedis cache.CacheConf
+    	BizRedis   cache.NodeConf
     	UserRpc    zrpc.RpcClientConf
+    	CourseRpc  zrpc.RpcClientConf
+    	Dq         dq.DqConf
     }
     ```
   
@@ -321,17 +331,37 @@ model
       -
         Host: 127.0.0.1:6379
         Type: node
+    BizRedis:
+      Host: 127.0.0.1:6379
+      Type: node
+      Weight: 100
     UserRpc:
       Etcd:
         Hosts:
           - 127.0.0.1:2379
         Key: user.rpc
-
+    CourseRpc:
+      Etcd:
+        Hosts:
+          - 127.0.0.1:2379
+        Key: course.rpc
+    Dq:
+      Beanstalks:
+        -
+          Endpoint: 127.0.0.1:11300
+          Tube: course_select
+      Redis:
+        Host: 127.0.0.1:6379
+        Type: node
     ```
 
     >说明： 我本地redis没有设置密码，因此没有配置`Password`配置项，为了防止和user api端口冲突，这里将端口修改为`8889`
 
-# 删除`service/selection/api/internal/middleware`目录下的文件，添加`usercheckmiddleware.go`
+
+
+# 中间件管理
+
+删除`service/selection/api/internal/middleware`目录下的文件，添加`usercheckmiddleware.go`
 
 ```go
 package middleware
@@ -393,8 +423,9 @@ func (m *UserCheckMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 
 > 说明：这里由于goctl中间件生成的文件创建有bug，因此需要手动做了中间文件修改，后续goctl修复后可针对每个中间件实现自己的逻辑即可。
 
-# ServiceContext增加`SelectionModel`、`SelectionCourseModel`、`SelectionStudentModel`资源
-进入文件`service/selection/api/internal/svc/servicecontext.go`，添加`SelectionModel`、`SelectionCourseModel`、`SelectionStudentModel`资源依赖。
+
+# ServiceContext增加`SelectionModel`、`SelectionCourseModel`等资源
+进入文件`service/selection/api/internal/svc/servicecontext.go`，添加`SelectionModel`、`SelectionCourseModel`等资源依赖。
 
 ```go
 type ServiceContext struct {
@@ -405,12 +436,19 @@ type ServiceContext struct {
 	SelectionModel        model.SelectionModel
 	SelectionCourseModel  model.SelectionCourseModel
 	SelectionStudentModel model.SelectionStudentModel
+	UserService           userservice.UserService
+	CourseService         courseservice.CourseService
+	BizRedis              *redis.Redis
+	Producer              dq.Producer
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	conn := sqlx.NewMysql(c.Mysql.DataSource)
 	userRpcClient := zrpc.MustNewClient(c.UserRpc)
+	courseRpcClient := zrpc.MustNewClient(c.CourseRpc)
 	userRpcService := userservice.NewUserService(userRpcClient)
+	courseService := courseservice.NewCourseService(courseRpcClient)
+	bizRedis := redis.NewRedis(c.BizRedis.Host, c.BizRedis.Type, c.BizRedis.Pass)
 	return &ServiceContext{
 		Config:                c,
 		ManagerCheck:          middleware.NewManagerCheckMiddleware("manager", userRpcService).Handle,
@@ -419,6 +457,10 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		SelectionModel:        model.NewSelectionModel(conn, c.CacheRedis),
 		SelectionCourseModel:  model.NewSelectionCourseModel(conn, c.CacheRedis),
 		SelectionStudentModel: model.NewSelectionStudentModel(conn, c.CacheRedis),
+		UserService:           userRpcService,
+		CourseService:         courseService,
+		BizRedis:              bizRedis,
+		Producer:              dq.NewProducer(c.Dq.Beanstalks),
 	}
 }
 ```
@@ -447,12 +489,916 @@ func main() {
 }
 ```
 
+# 填充逻辑
+
+### 增加error.go文件
+在`service/selection/api/internal/logic`目录下创建`error.go`文件，填充代码
+```go
+var (
+	errCourseNotFound          = errorx.NewDescriptionError("课程不存在")
+	errSelectionNotFound       = errorx.NewDescriptionError("选课任务不存在")
+	errSelectionIsExists       = errorx.NewDescriptionError("选课任务已存在")
+	errNotInSelectionTimeRange = errorx.NewDescriptionError("选课未开始")
+	errSelectionExpired        = errorx.NewDescriptionError("选课已结束")
+	errSelectionCourseNotFound = errorx.NewDescriptionError("不存在该选课课程")
+	errSelectionSelected       = errorx.NewDescriptionError("你已选择过该课程，请勿重复选择")
+	errSelectionNotSelected    = errorx.NewDescriptionError("你尚未选择该课程，无法取消选课")
+)
+```
+
+### 添加`common.go`文件
+在`service/selection/api/internal/logic`目录下添加`common.go`文件，用于存放选课创建、编辑等逻辑的公用逻辑，填充代码
+
+```go
+func checkCourseSelection(in types.CreateSelectionReq) error {
+	if len(strings.TrimSpace(in.Name)) == 0 {
+		return errorx.NewInvalidParameterError("name")
+	}
+
+	if utf8.RuneCountInString(in.Name) > 20 {
+		return lengthAlert("课程名称", 20)
+	}
+
+	now := time.Now()
+	startTime := now.Add(2 * time.Hour)
+	endTime := startTime.AddDate(0, 0, 5)
+	if in.StartTime < startTime.Unix() {
+		return errorx.NewDescriptionError(fmt.Sprintf("选课开始时间不能早于%s", startTime.Format("2006年01月02日 03时04分05秒")))
+	}
+
+	if in.EndTime < endTime.Unix() {
+		return errorx.NewDescriptionError(fmt.Sprintf("选课结束时间不能晚于%s", startTime.Format("2006年01月02日 03时04分05秒")))
+	}
+
+	if utf8.RuneCountInString(in.Notification) > 500 {
+		return lengthAlert("选课通知", 500)
+	}
+
+	return nil
+}
+
+func lengthAlert(hint string, length int) error {
+	return errorx.NewDescriptionError(fmt.Sprintf("%s不能超过%d个字符", hint, length))
+}
+```
+
+### 创建选课
+创建选课我们用到了dq来发送选课通知，因此我们需要一个dq的consumer服务来消费该消息，具体消费服务请移步至[selection-rmq](../rmq/readme.md)
+
+* 文件位置: `service/selection/api/internal/logic/createselectionlogic.go`
+* 方法名: `CreateSelection`
+* 代码内容:
+
+    ```go
+    func (l *CreateSelectionLogic) CreateSelection(req types.CreateSelectionReq) error {
+    	if err := checkCourseSelection(req); err != nil {
+    		return err
+    	}
+    
+    	_, err := l.svcCtx.SelectionModel.FindOneByName(req.Name)
+    	switch err {
+    	case nil:
+    		return errSelectionIsExists
+    	case model.ErrNotFound:
+    		_, err := l.svcCtx.SelectionModel.Insert(model.Selection{
+    			MaxCredit:    int64(req.MaxCredit),
+    			StartTime:    req.StartTime,
+    			EndTime:      req.EndTime,
+    			Notification: req.Notification,
+    			Name:         req.Name,
+    		})
+    		if err != nil {
+    			return err
+    		}
+    
+    		// dq
+    		msg := fmt.Sprintf("选课【%s】还有两小时就要开始了，请提前做好选课准备。", req.Name)
+    		_, err = l.svcCtx.Producer.At([]byte(msg), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
+    
+    		return err
+    	default:
+    		return err
+    	}
+    }
+    ```
+
+  
+### 编辑选课任务
+
+* 文件位置: `service/selection/api/internal/logic/editselectionlogic.go`
+* 方法名: `EditSelection`
+* 代码内容:
+
+    ```go
+    func (l *EditSelectionLogic) EditSelection(req types.EditSelectionReq) error {
+    	if err := checkCourseSelection(req.CreateSelectionReq); err != nil {
+    		return err
+    	}
+    	data, err := l.svcCtx.SelectionModel.FindOne(req.Id)
+    	if err != nil {
+    		if err == model.ErrNotFound {
+    			return errSelectionNotFound
+    		}
+    		return err
+    	}
+    
+    	nameData, err := l.svcCtx.SelectionModel.FindOneByName(req.Name)
+    	if err != nil {
+    		if err == model.ErrNotFound {
+    			return err
+    		}
+    	} else {
+    		if nameData.Id != req.Id {
+    			return errSelectionIsExists
+    		}
+    	}
+    
+    	data.Name = req.Name
+    	data.MaxCredit = int64(req.MaxCredit)
+    	data.StartTime = req.StartTime
+    	data.EndTime = req.EndTime
+    	data.Notification = req.Notification
+    	return l.svcCtx.SelectionModel.Update(*data)
+    }
+    ```
+  
+### 删除选课任务
+
+* 文件位置: `service/selection/api/internal/logic/deleteselectionlogic.go`
+* 方法名: `DeleteSelection`
+* 代码内容:
+
+    ```go
+    func (l *DeleteSelectionLogic) DeleteSelection(req types.SelectionIdReq) error {
+    	err := l.svcCtx.SelectionModel.Delete(req.Id)
+    	switch err {
+    	case nil:
+    		return nil
+    	case model.ErrNotFound:
+    		return errSelectionNotFound
+    	default:
+    		return err
+    	}
+    }
+    ```
+
+### 修改`selectioncoursemodel.go`  
+编辑`service/selection/model/selectioncoursemodel.go`添加`FindBySelectionId`、`FindByTeacherId`、`DeleteBySelectionId`方法
+
+```go
+FindBySelectionId(selectionId int64) ([]*SelectionCourse, error)
+FindByTeacherId(teacherId int64) ([]*SelectionCourse, error)
+DeleteBySelectionId(selectionId int64) error
+```
+```go
+func (m *defaultSelectionCourseModel) FindBySelectionId(selectionId int64) ([]*SelectionCourse, error) {
+	query := fmt.Sprintf("select %s from %s where selection_id = ?", selectionCourseRows, m.table)
+	var resp []*SelectionCourse
+	err := m.QueryRowsNoCache(&resp, query, selectionId)
+	return resp, err
+}
+
+func (m *defaultSelectionCourseModel) FindByTeacherId(teacherId int64) ([]*SelectionCourse, error) {
+	query := fmt.Sprintf("select %s from %s where teacher_id = ?", selectionCourseRows, m.table)
+	var resp []*SelectionCourse
+	err := m.QueryRowsNoCache(&resp, query, teacherId)
+	return resp, err
+}
+
+func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) error {
+	list, err := m.FindBySelectionId(selectionId)
+	if err != nil {
+		return err
+	}
+
+	keys := collection.NewSet()
+	for _, item := range list {
+		keys.AddStr(m.formatPrimary(item.Id))
+	}
+	query := fmt.Sprintf("delete from %s where selection_id = ?",m.table)
+	_, err = m.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+		return conn.Exec(query, selectionId)
+	}, keys.KeysStr()...)
+
+	return err
+}
+```
 
 
+### 查看选课任务
 
+* 文件位置: `service/selection/api/internal/logic/getselectionlogic.go`
+* 方法名: `GetSelection`
+* 代码内容:
 
+    ```go
+    func (l *GetSelectionLogic) GetSelection(req types.SelectionIdReq) (*types.SelectionReply, error) {
+    	list, err := l.svcCtx.SelectionCourseModel.FindBySelectionId(req.Id)
+    	if err != nil {
+    		return nil, err
+    	}
+    
+    	var courseList []*types.Course
+    	fx.From(func(source chan<- interface{}) {
+    		for _, item := range list {
+    			source <- item
+    		}
+    	}).Walk(func(item interface{}, pipe chan<- interface{}) {
+    		data := item.(*model.SelectionCourse)
+    		courseInfo, err := l.svcCtx.CourseService.FindOne(l.ctx, &courseservice.IdReq{
+    			Id: data.CourseId,
+    		})
+    		if err != nil {
+    			logx.Error(err)
+    			return
+    		}
+    
+    		var teacherName string
+    		userInfo, err := l.svcCtx.UserService.FindOne(l.ctx, &user.UserReq{Id: data.TeacherId})
+    		if err != nil {
+    			logx.Error(err)
+    		} else {
+    			teacherName = userInfo.Name
+    		}
+    
+    		courseList = append(courseList, &types.Course{
+    			Id:                courseInfo.Id,
+    			SelectionCourseId: data.Id,
+    			Name:              courseInfo.Name,
+    			Description:       courseInfo.Description,
+    			Classify:          courseInfo.Classify,
+    			GenderLimit:       int(courseInfo.GenderLimit),
+    			MemberLimit:       int(courseInfo.MemberLimit),
+    			StartTime:         courseInfo.StartTime,
+    			Credit:            int(courseInfo.Credit),
+    			TeacherName:       teacherName,
+    		})
+    	})
+    
+    	// sort by id desc
+    	sort.Slice(courseList, func(i, j int) bool {
+    		return courseList[i].Id > courseList[j].Id
+    	})
+    
+    	data, err := l.svcCtx.SelectionModel.FindOne(req.Id)
+    	switch err {
+    	case nil:
+    		return &types.SelectionReply{
+    			Id:           data.Id,
+    			Name:         data.Name,
+    			MaxCredit:    int(data.MaxCredit),
+    			StartTime:    data.StartTime,
+    			EndTime:      data.EndTime,
+    			Notification: data.Notification,
+    			CourseList:   nil,
+    		}, nil
+    	case model.ErrNotFound:
+    		return nil, errSelectionNotFound
+    	default:
+    		return nil, err
+    	}
+    }
+    ```
 
+### 在selectionstudentmodel.go添加`FindBySelectionCourseId`方法
 
+* 文件位置：`service/selection/model/selectionstudentmodel.go`
+* 方法名：FindBySelectionCourseId
+* interface代码内容：
 
+    ```go
+    FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error)
+    ```
+* default实现代码内容：
 
+    ```go
+    func (m *defaultSelectionStudentModel) FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error) {
+    	query := fmt.Sprintf("select %s from %s where selection_course_id = ?", selectionStudentRows, m.table)
+    	var resp []*SelectionStudent
+    	err := m.QueryRowNoCache(&resp, query,selectionCourseId)
+    	return resp, err
+    }
+    ```
+  
+### 删除选课任务
+* 文件位置: `service/selection/api/internal/logic/deleteselectionlogic.go`
+* 方法名: `DeleteSelection`
+* 代码内容:
+
+    ```go
+    func (l *DeleteSelectionLogic) DeleteSelection(req types.SelectionIdReq) error {
+    	err := l.svcCtx.SelectionModel.Delete(req.Id)
+    	switch err {
+    	case nil:
+    		selectCourseList, err := l.svcCtx.SelectionCourseModel.FindBySelectionId(req.Id)
+    		if err != nil {
+    			return err
+    		}
+    
+    		fx.From(func(source chan<- interface{}) {
+    			for _, item := range selectCourseList {
+    				source <- item
+    			}
+    		}).Walk(func(item interface{}, pipe chan<- interface{}) {
+    			data := item.(*model.SelectionCourse)
+    			list, err := l.svcCtx.SelectionStudentModel.FindBySelectionCourseId(data.Id)
+    			if err != nil {
+    				return
+    			}
+    
+    			for _, each := range list {
+    				_ = l.svcCtx.SelectionStudentModel.Delete(each.Id)
+    			}
+    		}).Done()
+    
+    		_ = l.svcCtx.SelectionCourseModel.DeleteBySelectionId(req.Id)
+    		
+    		return nil
+    	case model.ErrNotFound:
+    		return errSelectionNotFound
+    	default:
+    		return err
+    	}
+    }
+    ```
+
+### 添加课程
+
+* 文件位置: `service/selection/api/internal/logic/addcourselogic.go`
+* 方法名: `AddCourse`
+* 代码内容:
+
+    ```go
+    func (l *AddCourseLogic) AddCourse(req types.SelectionAddCourseReq) error {
+    	if req.SelectionId <= 0 {
+    		return errorx.NewInvalidParameterError("selectionId")
+    	}
+    
+    	if len(req.List) == 0 {
+    		return errorx.NewInvalidParameterError("list")
+    	}
+    
+    	for _, item := range req.List {
+    		if item.TeacherId <= 0 {
+    			return errorx.NewInvalidParameterError("teacherId")
+    		}
+    
+    		if item.CourseId <= 0 {
+    			return errorx.NewInvalidParameterError("courseId")
+    		}
+    	}
+    
+    	_, err := l.svcCtx.SelectionModel.FindOne(req.SelectionId)
+    	if err != nil {
+    		if err == model.ErrNotFound {
+    			return errSelectionNotFound
+    		}
+    		return err
+    	}
+    
+    	selectionCourseList, err := l.svcCtx.SelectionCourseModel.FindBySelectionId(req.SelectionId)
+    	if err != nil {
+    		return err
+    	}
+    
+    	selectionCourseM := make(map[int64]struct{})
+    	for _, item := range selectionCourseList {
+    		selectionCourseM[item.CourseId] = struct{}{}
+    	}
+    
+    	err = mr.MapReduceVoid(func(source chan<- interface{}) {
+    		for _, item := range req.List {
+    			source <- item
+    		}
+    	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
+    		data := item.(*types.SelectionCourse)
+    		if _, ok := selectionCourseM[data.CourseId]; ok {
+    			cancel(errorx.NewDescriptionError("已经添加过该课程，请勿重复添加"))
+    			return
+    
+    		}
+    		_, err := l.svcCtx.CourseService.FindOne(l.ctx, &courseservice.IdReq{
+    			Id: data.CourseId,
+    		})
+    		if err != nil {
+    			st := status.Convert(err)
+    			if st.Code() == codes.NotFound {
+    				cancel(errCourseNotFound)
+    				return
+    			}
+    			cancel(err)
+    			return
+    		}
+    
+    		_, err = l.svcCtx.UserService.FindOne(l.ctx, &userservice.UserReq{
+    			Id: data.TeacherId,
+    		})
+    		if err != nil {
+    			st := status.Convert(err)
+    			if st.Code() == codes.NotFound {
+    				cancel(errCourseNotFound)
+    				return
+    			}
+    			cancel(err)
+    			return
+    		}
+    
+    		writer.Write(struct{}{})
+    	}, func(pipe <-chan interface{}, cancel func(error)) {
+    		for range pipe {
+    		}
+    	})
+    
+    	if err != nil {
+    		return err
+    	}
+    
+    	fx.From(func(source chan<- interface{}) {
+    		for _, item := range req.List {
+    			source <- item
+    		}
+    	}).Walk(func(item interface{}, pipe chan<- interface{}) {
+    		data := item.(*types.SelectionCourse)
+    		// 不考虑事务
+    		_, err := l.svcCtx.SelectionCourseModel.Insert(model.SelectionCourse{
+    			SelectionId: req.SelectionId,
+    			CourseId:    data.CourseId,
+    			TeacherId:   data.TeacherId,
+    		})
+    		logx.Error(err)
+    	}).Done()
+    
+    	return nil
+    }
+    ```
+
+### 删除课程
+* 文件位置: `service/selection/api/internal/logic/deletecourselogic.go`
+* 方法名: `DeleteCourse`
+* 代码内容:
+
+    ```go
+    func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteSelectionCourseReq) error {
+    	selection, err := l.svcCtx.SelectionModel.FindOne(req.SelectionId)
+    	switch err {
+    	case nil:
+    		if time.Now().After(time.Unix(selection.StartTime, 0)) {
+    			return errorx.NewDescriptionError("该选课已发布，不能编辑课程")
+    		}
+    
+    		err = l.svcCtx.SelectionModel.Delete(req.SelectionId)
+    		if err != nil {
+    			logx.Error(err)
+    		}
+    		for _, each := range req.Ids {
+    			_ = l.svcCtx.SelectionCourseModel.Delete(each)
+    		}
+    		return nil
+    	case model.ErrNotFound:
+    		return errSelectionNotFound
+    	default:
+    		return err
+    	}
+    }
+    ```
+
+### selectionstudentmodel.go添加`FindByStudentId`方法
+* 文件位置：`service/selection/model/selectionstudentmodel.go`
+* 方法名称：添加`FindByStudentId`和`FindByStudentIdAndSelectionCourseId`
+* interface中代码：
+    ```go
+    FindByStudentId(studentId int64) ([]*SelectionStudent, error)
+    FindByStudentIdAndSelectionCourseId(studentId, selectionCourseId int64) (*SelectionStudent, error)
+    ```
+* default实现中代码
+    ```go
+    func (m *defaultSelectionStudentModel) FindByStudentId(studentId int64) ([]*SelectionStudent, error) {
+        query := fmt.Sprintf("select %s from %s where student_id = ?", selectionStudentRows, m.table)
+        var resp []*SelectionStudent
+        err := m.QueryRowsNoCache(&resp, query,studentId)
+        return resp, err
+    }
+    
+    func (m *defaultSelectionStudentModel)FindByStudentIdAndSelectionCourseId(studentId, selectionCourseId int64) (*SelectionStudent, error){
+        query := fmt.Sprintf("select %s from %s where student_id = ? and selection_course_id = ? limit 1", selectionStudentRows, m.table)
+        var resp SelectionStudent
+        err := m.QueryRowNoCache(&resp, query,studentId,selectionCourseId)
+        return &resp, err
+    }
+    ```
+
+### 修改selecthandler.go
+* 文件位置： `service/selection/api/internal/handler/selecthandler.go`
+* 方法名：`selectHandler`
+代码内容：
+    ```go
+    func selectHandler(ctx *svc.ServiceContext) http.HandlerFunc {
+    	return func(w http.ResponseWriter, r *http.Request) {
+    		userId, ok := jwtx.GetUserId(w, r) // add
+    		if !ok {  // add
+    			return  // add
+    		}  // add
+    
+    		var req types.SelectCourseId
+    		if err := httpx.Parse(r, &req); err != nil {
+    			httpx.Error(w, err)
+    			return
+    		}
+    
+    		l := logic.NewSelectLogic(r.Context(), ctx)
+    		err := l.Select(userId, req)  // add userId
+    		if err != nil {
+    			httpx.Error(w, err)
+    		} else {
+    			httpx.Ok(w)
+    		}
+    	}
+    }
+    ```
+
+### 开始选课
+* 文件位置: `service/selection/api/internal/logic/selectlogic.go`
+* 方法名: `Select`
+* 代码内容:
+
+    ```go
+    func (l *SelectLogic) Select(userId int64, req types.SelectCourseId) error {
+    	if req.Id <= 0 {
+    		return errorx.NewInvalidParameterError("id")
+    	}
+    
+    	key := fmt.Sprintf("%v", req.Id)
+    	lock := redis.NewRedisLock(l.svcCtx.BizRedis, key)
+    	lock.SetExpire(3)
+    	ok, err := lock.Acquire()
+    	if err != nil {
+    		return err
+    	}
+    
+    	// todo: 这里和中间件中有重复逻辑，都查询了一次user，开发人员可以自己优化一下。
+    	userInfo, err := l.svcCtx.UserService.FindOne(l.ctx, &userservice.UserReq{Id: req.Id})
+    	if err != nil {
+    		st := status.Convert(err)
+    		if st.Code() == codes.NotFound {
+    			return errorx.NewDescriptionError("用户不存在")
+    		}
+    
+    		return errorx.NewDescriptionError(st.Message())
+    	}
+    
+    	now := time.Now()
+    	selectionCourse, err := l.svcCtx.SelectionCourseModel.FindOne(req.Id)
+    	switch err {
+    	case nil:
+    	case model.ErrNotFound:
+    		return errSelectionCourseNotFound
+    	default:
+    		return err
+    	}
+    
+    	selection, err := l.svcCtx.SelectionModel.FindOne(selectionCourse.SelectionId)
+    	switch err {
+    	case nil:
+    		if now.Before(time.Unix(selection.StartTime, 0)) {
+    			return errNotInSelectionTimeRange
+    		}
+    
+    		if now.After(time.Unix(selection.EndTime, 0)) {
+    			return errSelectionExpired
+    		}
+    
+    	case model.ErrNotFound:
+    		return errSelectionNotFound
+    	default:
+    		return err
+    	}
+    
+    	courseInfo, err := l.svcCtx.CourseService.FindOne(l.ctx, &courseservice.IdReq{Id: selectionCourse.CourseId})
+    	if err != nil {
+    		st := status.Convert(err)
+    		if st.Code() == codes.NotFound {
+    			return errCourseNotFound
+    		}
+    
+    		return errorx.NewDescriptionError(st.Message())
+    	}
+    
+    	if courseInfo.GenderLimit != course.GenderLimit_NoLimit && courseInfo.GenderLimit != course.GenderLimit(userInfo.Gender) {
+    		return errorx.NewDescriptionError("性别不符合")
+    	}
+    
+    	if !ok {
+    		return errorx.NewDescriptionError("当前选课人数较多，请稍后再试")
+    	}
+    	defer func() {
+    		_, err = lock.Release()
+    		logx.Error(err)
+    	}()
+    
+    	endTime := time.Unix(selection.EndTime, 0)
+    	ok, err = l.trySelect(req.Id, userId, selection.MaxCredit, courseInfo, endTime)
+    	if err != nil {
+    		logx.Error(err)
+    		return errorx.NewDescriptionError("选课失败，请稍后再试")
+    	}
+    
+    	if !ok {
+    		return errorx.NewDescriptionError("选课人数已满，请选择其他课程")
+    	}
+    	threading.GoSafe(func() {
+    		_, err = l.svcCtx.SelectionStudentModel.Insert(model.SelectionStudent{
+    			SelectionCourseId: req.Id,
+    			StudentId:         userId,
+    		})
+    		if err != nil {
+    			logx.Error(err)
+    		}
+    	})
+    
+    	return nil
+    }
+    
+    func (l *SelectLogic) trySelect(selectCourseId, userId, maxCredit int64, courseInfo *courseservice.Course, expireAt time.Time) (bool, error) {
+    	expire := int(expireAt.Sub(time.Now()).Seconds()) + 1
+    	userKey := fmt.Sprintf("biz#user#selected#status#%v#%v", userId, selectCourseId)
+    	ok, err := l.svcCtx.BizRedis.SetnxEx(userKey, "*", expire)
+    	if err != nil {
+    		return false, err
+    	}
+    
+    	if !ok {
+    		return false, errSelectionSelected
+    	}
+    
+    	userCreditKey := fmt.Sprintf("biz#user#selected#credit#%v", userId)
+    	credit, err := l.svcCtx.BizRedis.Incrby(userCreditKey, courseInfo.Credit)
+    	if err != nil {
+    		_, _ = l.svcCtx.BizRedis.Del(userKey)
+    		return false, err
+    	}
+    
+    	if credit > maxCredit {
+    		_, _ = l.svcCtx.BizRedis.Del(userKey)
+    		return false, errorx.NewDescriptionError(fmt.Sprintf("选择当前课程后，该学期你的学分已经超出总学分%d，请合理选择课程", maxCredit))
+    	}
+    	_ = l.svcCtx.BizRedis.Expire(userCreditKey, expire)
+    
+    	courseKey := fmt.Sprintf("biz#course#selected#data#%v", selectCourseId)
+    	var field string
+    	switch courseInfo.GenderLimit {
+    	case course.GenderLimit_Male:
+    		field = "male"
+    	case course.GenderLimit_Female:
+    		field = "female"
+    	default:
+    		field = "all"
+    	}
+    
+    	count, err := l.svcCtx.BizRedis.Hincrby(courseKey, field, 1)
+    	if err != nil {
+    		_, _ = l.svcCtx.BizRedis.Del(userKey)
+    		return false, err
+    	}
+    
+    	if count > int(courseInfo.MemberLimit) {
+    		_, _ = l.svcCtx.BizRedis.Hincrby(courseKey, field, -1)
+    		_, _ = l.svcCtx.BizRedis.Del(userKey)
+    		return false, nil
+    	}
+    
+    	_ = l.svcCtx.BizRedis.Expire(courseKey, expire)
+    	return true, nil
+    }
+    ```
+
+### 我的选课列表
+* 文件位置: `service/selection/api/internal/logic/mineselectionslogic.go`
+* 方法：`MineSelections`
+* 代码内容：
+
+    ```go
+    func (l *MineSelectionsLogic) MineSelections(userId int64) (*types.MineCourseReply, error) {
+    	studentSelectedCourseList, err := l.svcCtx.SelectionStudentModel.FindByStudentId(userId)
+    	if err != nil {
+    		return nil, err
+    	}
+    
+    	var resp types.MineCourseReply
+    	fx.From(func(source chan<- interface{}) {
+    		for _, each := range studentSelectedCourseList {
+    			source <- each
+    		}
+    	}).Walk(func(item interface{}, pipe chan<- interface{}) {
+    		data := item.(*model.SelectionStudent)
+    		var teacherName string
+    		userInfo, err := l.svcCtx.UserService.FindOne(l.ctx, &userservice.UserReq{Id: data.StudentId})
+    		if err != nil {
+    			logx.Error(errSelectionSelected)
+    		} else {
+    			teacherName = userInfo.Name
+    		}
+    
+    		selectionCourse, err := l.svcCtx.SelectionCourseModel.FindOne(data.SelectionCourseId)
+    		if err != nil {
+    			return
+    		}
+    
+    		courseInfo, err := l.svcCtx.CourseService.FindOne(l.ctx, &courseservice.IdReq{Id: selectionCourse.CourseId})
+    		if err != nil {
+    			return
+    		}
+    
+    		resp.List = append(resp.List, &types.Course{
+    			Id:                courseInfo.Id,
+    			SelectionCourseId: selectionCourse.Id,
+    			Name:              courseInfo.Name,
+    			Description:       courseInfo.Description,
+    			Classify:          courseInfo.Classify,
+    			GenderLimit:       int(courseInfo.GenderLimit),
+    			MemberLimit:       int(courseInfo.MemberLimit),
+    			StartTime:         courseInfo.StartTime,
+    			Credit:            int(courseInfo.Credit),
+    			TeacherName:       teacherName,
+    		})
+    	}).Done()
+    
+    	sort.Slice(resp.List, func(i, j int) bool {
+    		return resp.List[i].Id < resp.List[j].Id
+    	})
+    
+    	return &resp, nil
+    }
+    ```
+
+### 修改`getteachingcourseshandler.go`
+* 文件位置：`service/selection/api/internal/handler/getteachingcourseshandler.go`
+* 方法名称：`getTeachingCoursesHandler`
+* 代码内容：
+
+    ```go
+    func getTeachingCoursesHandler(ctx *svc.ServiceContext) http.HandlerFunc {
+    	return func(w http.ResponseWriter, r *http.Request) {
+    		userId,ok:=jwtx.GetUserId(w,r)
+    		if !ok{
+    			return
+    		}
+    
+    		l := logic.NewGetTeachingCoursesLogic(r.Context(), ctx)
+    		resp, err := l.GetTeachingCourses(userId)
+    		if err != nil {
+    			httpx.Error(w, err)
+    		} else {
+    			httpx.OkJson(w, resp)
+    		}
+    	}
+    }
+    ```
+### 获取教师任课课程
+* 文件位置：`service/selection/api/internal/logic/getteachingcourseslogic.go`
+* 方法名称：`GetTeachingCourses`
+* 代码内容：
+
+    ```go
+    func (l *GetTeachingCoursesLogic) GetTeachingCourses(userId int64) (*types.MineCourseReply, error) {
+    	selectCourseList, err := l.svcCtx.SelectionCourseModel.FindByTeacherId(userId)
+    	if err != nil {
+    		return nil, err
+    	}
+    
+    	var teacherName string
+    	userInfo, err := l.svcCtx.UserService.FindOne(l.ctx, &userservice.UserReq{Id: userId})
+    	if err != nil {
+    		logx.Error(err)
+    	} else {
+    		teacherName = userInfo.Name
+    	}
+    
+    	var resp types.MineCourseReply
+    	fx.From(func(source chan<- interface{}) {
+    		for _, item := range selectCourseList {
+    			source <- item
+    		}
+    	}).Walk(func(item interface{}, pipe chan<- interface{}) {
+    		data := item.(*model.SelectionCourse)
+    		courseInfo, err := l.svcCtx.CourseService.FindOne(l.ctx, &courseservice.IdReq{Id: data.CourseId})
+    		if err != nil {
+    			logx.Error(err)
+    			return
+    		}
+    
+    		resp.List = append(resp.List, &types.Course{
+    			Id:                courseInfo.Id,
+    			SelectionCourseId: data.Id,
+    			Name:              courseInfo.Name,
+    			Description:       courseInfo.Description,
+    			Classify:          courseInfo.Classify,
+    			GenderLimit:       int(courseInfo.GenderLimit),
+    			MemberLimit:       int(courseInfo.MemberLimit),
+    			StartTime:         courseInfo.StartTime,
+    			Credit:            int(courseInfo.Credit),
+    			TeacherName:       teacherName,
+    		})
+    	}).Done()
+    
+    	return &resp, nil
+    }
+    ```
+  
+# 接口测试
+
+### 准备工作
+* 启动redis
+    ```shell script
+    $ redis-server
+    ```
+* 启动etcd
+    ```shell script
+    $ etcd
+    ```
+* 启动beanstalkd
+    ```shell script
+    $ beanstalkd -l 127.0.0.1 -p 11300
+    ```
+* 启动user-api服务
+
+    ```shell script
+    $ go run user.go
+    ```
+    ```text
+    Starting server at 0.0.0.0:8888...
+    ```
+
+### 接口验证
+* 管理员登录
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8888/api/user/login \
+        -H 'content-type: application/json' \
+        -d '{
+              "username":"gozero",
+              "password":"111111"
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Content-Type: application/json
+    Date: Wed, 16 Dec 2020 08:37:00 GMT
+    Content-Length: 178
+    
+    {"id":2,"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTE0MjAsImlhdCI6MTYwODEwNzgyMCwiaWQiOjJ9.SKMOrt22pCN2SE0qYiKkmmcJIyr3F0U7hn04pcZLmxQ","expireAt":1608111420}
+    ```
+  
+* 注册一位教师
+
+    ```shell script
+    $ curl -i -X POST \
+        http://127.0.0.1:8888/api/user/register \
+        -H 'content-type: application/json' \
+        -d '{
+      	"username":"teacher",
+          "password":"111111",
+          "role":"teacher"
+      }'
+    ```
+    ```text
+    HTTP/1.1 200 OK
+    Date: Wed, 16 Dec 2020 08:35:04 GMT
+    Content-Length: 0
+    ```
+* 添加课程(课程模块)
+    
+    ```shell script
+    
+    ```
+
+# 本章节贡献者
+ * [anqiansong](https://github.com/anqiansong)
+ 
+ # 技术点总结
+ * go-zero中间件使用
+    * 全局中间件
+    * 指定路由组中间件
+ * go-zero自定义错误
+ * go-zero rpc调用
+ * [go-queue](https://github.com/tal-tech/go-queue)
+    * dq
+ * redis(BizRedis)
+    * string
+    * map
+ * redisLock
+ 
+ # 相关推荐
+ * [zrpc](https://github.com/tal-tech/zero-doc/blob/main/doc/zrpc.md)
+ * [使用goctl创建rpc](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-rpc.md)
+ * [使用goctl创建model](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-model-sql.md)
+ * [dq/kq使用说明](https://github.com/tal-tech/go-queue)
+ 
+ # 结尾
+ 本章节完。
+ 
+ 如发现任何错误请通过Issue发起问题修复申请。
+ 
+你可能会浏览 
+* [用户模块](../../../doc/requirement/user.md)
+* [课程模块](../../../doc/requirement/course.md)
 
