@@ -56,4 +56,33 @@ $ echo hello
     
 * [需求概况](./requirement)
     * [需求说明](./requirement/summary.md)
-
+        * [用户模块](./requirement/user.md)
+        * [课程模块](./requirement/course.md)
+        * [选课模块](./requirement/selection.md)
+    
+# 技术要点
+* [user-api](../service/user/api/readme.md)
+   * [正则表达式](https://github.com/ziishaned/learn-regex)
+   * [JSON Web Tokens](https://jwt.io/)
+   * [Mysql](https://www.mysql.com/)
+   * [Redis](https://redis.io/)
+* [user-rpc](../service/user/rpc/readme.md)
+   * zrpc创建
+* [course-api](../service/course/api/readme.md)
+  * go-zero中间件使用
+     * 全局中间件
+     * 指定路由组中间件
+  * go-zero自定义错误
+  * go-zero rpc调用
+* [selection-api](../service/selection/api/readme.md)
+    * go-zero中间件使用
+        * 全局中间件
+        * 指定路由组中间件
+     * go-zero自定义错误
+     * go-zero rpc调用
+     * [go-queue](https://github.com/tal-tech/go-queue)
+        * dq
+     * redis(BizRedis)
+        * string
+        * map
+     * redisLock

@@ -1485,6 +1485,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
  * [使用goctl创建rpc](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-rpc.md)
  * [使用goctl创建model](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-model-sql.md)
  * [dq/kq使用说明](https://github.com/tal-tech/go-queue)
+ * [beanstalkd](https://beanstalkd.github.io)
  
  # 结尾
  本章节完。

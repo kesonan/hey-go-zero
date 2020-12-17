@@ -275,6 +275,19 @@ func NewServiceContext(c config.Config) *ServiceContext {
     	return &resp, nil
     }
     ```
+  
+# 本章节贡献者
+ * [anqiansong](https://github.com/anqiansong)
+ 
+# 技术点总结
+* zrpc创建
+ 
+ 
+# 结尾
+本章节完。
+ 
+如发现任何错误请通过Issue发起问题修复申请。
+ 
 你可能会浏览
 * [用户模块](../../../doc/requirement/user.md)
 * [选课模块](../../../doc/requirement/selection.md)

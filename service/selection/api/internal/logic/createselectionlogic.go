@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"hey-go-zero/service/selection/api/internal/svc"
@@ -47,6 +48,8 @@ func (l *CreateSelectionLogic) CreateSelection(req types.CreateSelectionReq) err
 		}
 
 		// dq，todo：这里建议用cron-job替代，如果用dq对于这种需要变更时间的逻辑，将导致发送了多个不同时间点的message，本案例仅用于演示dq这么使用。
+		at := time.Unix(req.StartTime, 0).Add(-2 * time.Hour)
+		fmt.Println(at)
 		_, err = l.svcCtx.Producer.At([]byte(req.Notification), time.Unix(req.StartTime, 0).Add(-2*time.Hour))
 
 		return err
