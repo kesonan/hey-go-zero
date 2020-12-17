@@ -23,8 +23,6 @@ hey-go-zero是基于[go-zero](https://github.com/tal-tech/go-zero) 的一个示�
 * 命令介绍
 * 基本使用
 
-更多文档说明请跳转至[wiki]()
-
 # Issue
 对于阅读过程中如有阅读不便、难于理解、错误的地方请通过issue交流（唯一方式）。
 
