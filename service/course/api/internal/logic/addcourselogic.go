@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"hey-go-zero/common/errorx"
@@ -64,7 +63,6 @@ func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
 			Classify:    req.Classify,
 			GenderLimit: int64(req.GenderLimit),
 			MemberLimit: int64(req.MemberLimit),
-			StartTime:   req.StartTime,
 			Credit:      int64(req.Credit),
 		})
 		return err
@@ -88,12 +86,6 @@ func (l *AddCourseLogic) parametersCheck(req types.AddCourseReq) error {
 
 	if utf8.RuneCountInString(req.Description) > 500 {
 		return wordLimitErr("课程描述", 500)
-	}
-
-	now := time.Now().AddDate(0, 0, 1)
-	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-	if req.StartTime < validEarliestStartTime.Unix() {
-		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
 	}
 
 	return nil

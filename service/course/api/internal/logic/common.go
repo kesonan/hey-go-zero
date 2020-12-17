@@ -26,7 +26,6 @@ func convertFromDbToLogic(data model.Course) types.Course {
 		Classify:    data.Classify,
 		GenderLimit: int(data.GenderLimit),
 		MemberLimit: int(data.MemberLimit),
-		StartTime:   data.StartTime,
 		Credit:      int(data.Credit),
 	}
 }

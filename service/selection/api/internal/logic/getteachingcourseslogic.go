@@ -62,7 +62,6 @@ func (l *GetTeachingCoursesLogic) GetTeachingCourses(userId int64) (*types.MineC
 			Classify:          courseInfo.Classify,
 			GenderLimit:       int(courseInfo.GenderLimit),
 			MemberLimit:       int(courseInfo.MemberLimit),
-			StartTime:         courseInfo.StartTime,
 			Credit:            int(courseInfo.Credit),
 			TeacherName:       teacherName,
 		})

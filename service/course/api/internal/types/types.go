@@ -11,7 +11,6 @@ type Course struct {
 	Classify    string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
 	GenderLimit int    `json:"genderLimit,options=0|1|2"`
 	MemberLimit int    `json:"memberLimit,optional"`
-	StartTime   int64  `json:"startTime"`
 	Credit      int    `json:"credit,range=(0:6]"`
 }
 

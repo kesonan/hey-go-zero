@@ -28,7 +28,6 @@ type (
 		GenderLimit int `json:"genderLimit"`
 		// 可选参数，如果不传则代表不限制人数
 		MemberLimit int `json:"memberLimit"`
-		StartTime int64 `json:"startTime"`
 		// 学分
 		Credit int `json:"credit"`
 		TeacherName string `json:"teacherName"`
@@ -737,7 +736,6 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
     			Classify:          courseInfo.Classify,
     			GenderLimit:       int(courseInfo.GenderLimit),
     			MemberLimit:       int(courseInfo.MemberLimit),
-    			StartTime:         courseInfo.StartTime,
     			Credit:            int(courseInfo.Credit),
     			TeacherName:       teacherName,
     		})
@@ -1224,7 +1222,6 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
     			Classify:          courseInfo.Classify,
     			GenderLimit:       int(courseInfo.GenderLimit),
     			MemberLimit:       int(courseInfo.MemberLimit),
-    			StartTime:         courseInfo.StartTime,
     			Credit:            int(courseInfo.Credit),
     			TeacherName:       teacherName,
     		})
@@ -1302,7 +1299,6 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
     			Classify:          courseInfo.Classify,
     			GenderLimit:       int(courseInfo.GenderLimit),
     			MemberLimit:       int(courseInfo.MemberLimit),
-    			StartTime:         courseInfo.StartTime,
     			Credit:            int(courseInfo.Credit),
     			TeacherName:       teacherName,
     		})

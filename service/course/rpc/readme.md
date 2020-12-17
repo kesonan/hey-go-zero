@@ -46,10 +46,8 @@ message Course {
   GenderLimit genderLimit = 5;
   // 限制人数
   int64 memberLimit = 6;
-  // 开课时间
-  int64 startTime = 7;
   // 当前课程学分
-  int64 credit = 8;
+  int64 credit = 7;
 }
 
 message CourseListReply {
@@ -187,7 +185,6 @@ func NewServiceContext(c config.Config) *ServiceContext {
     	resp.Classify = in.Classify
     	resp.GenderLimit = course.GenderLimit(in.GenderLimit)
     	resp.MemberLimit = in.MemberLimit
-    	resp.StartTime = in.StartTime
     	resp.Credit = in.Credit
     	return &resp
     }

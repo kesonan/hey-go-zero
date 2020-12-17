@@ -67,7 +67,6 @@ func (l *MineSelectionsLogic) MineSelections(userId int64) (*types.MineCourseRep
 			Classify:          courseInfo.Classify,
 			GenderLimit:       int(courseInfo.GenderLimit),
 			MemberLimit:       int(courseInfo.MemberLimit),
-			StartTime:         courseInfo.StartTime,
 			Credit:            int(courseInfo.Credit),
 			TeacherName:       teacherName,
 		})

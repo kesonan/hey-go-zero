@@ -14,10 +14,10 @@ import (
 )
 
 type (
-	IdReq           = course.IdReq
-	IdsReq          = course.IdsReq
 	Course          = course.Course
 	CourseListReply = course.CourseListReply
+	IdReq           = course.IdReq
+	IdsReq          = course.IdsReq
 
 	CourseService interface {
 		//  查询课程

@@ -27,7 +27,6 @@ func convertCourseFromDbToPb(in *model.Course) *course.Course {
 	resp.Classify = in.Classify
 	resp.GenderLimit = course.GenderLimit(in.GenderLimit)
 	resp.MemberLimit = in.MemberLimit
-	resp.StartTime = in.StartTime
 	resp.Credit = in.Credit
 	return &resp
 }

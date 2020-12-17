@@ -14,7 +14,6 @@ type (
 		GenderLimit int `json:"genderLimit,options=0|1|2"`
 		// 可选参数，如果不传则代表不限制人数
 		MemberLimit int `json:"memberLimit,optional"`
-		StartTime int64 `json:"startTime"`
 		// 学分
 		Credit int `json:"credit,range=(0:6]"`
 	}

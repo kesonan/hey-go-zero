@@ -15,81 +15,80 @@ course
 
 ```go
 info(
-    title: "课程管理api"
-    desc: "描述课程添加、编辑、删除、查看等协议"
-    author: "松妹子"
-    version: "V1.0"
+	title: "课程管理api"
+	desc: "描述课程添加、编辑、删除、查看等协议"
+	author: "松妹子"
+	version: "V1.0"
 )
 
 type (
-    Course {
-        Name string `json:"name"`
-        Description string `json:"description,optional"`
-        Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
-        // 性别限制，0-不限，1-男，2-女
-        GenderLimit int `json:"genderLimit,options=0|1|2"`
-        // 可选参数，如果不传则代表不限制人数
-        MemberLimit int `json:"memberLimit,optional"`
-        StartTime int64 `json:"startTime"`
-        // 学分
-        Credit int `json:"credit,range=(0:6]"`
-    }
-
-    AddCourseReq {
-        Course
-    }
-
-    EditCourseReq {
-        Id int64 `path:"id"`
-        Course
-    }
-
-    DeleteCourseReq {
-        Id int64 `path:"id"`
-    }
-
-    CourseInfoReq {
-        Id int64 `path:"id"`
-    }
-
-    CourseInfoReply {
-        Id int64 `json:"id"`
-        Course
-    }
-
-    CourseListReq {
-        Page int `form:"page,range=(0:]"`
-        Size int `form:"size,range=(0:]"`
-    }
-
-    CourseListReply {
-        // 总条数
-        Total int `json:"total"`
-        // 当前返回数量，即list.length
-        Size int `json:"size"`
-        List []*CourseInfoReply `json:"list"`
-    }
+	Course {
+		Name string `json:"name"`
+		Description string `json:"description,optional"`
+		Classify string `json:"classify,options=天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机"`
+		// 性别限制，0-不限，1-男，2-女
+		GenderLimit int `json:"genderLimit,options=0|1|2"`
+		// 可选参数，如果不传则代表不限制人数
+		MemberLimit int `json:"memberLimit,optional"`
+		// 学分
+		Credit int `json:"credit,range=(0:6]"`
+	}
+	
+	AddCourseReq {
+		Course
+	}
+	
+	EditCourseReq {
+		Id int64 `path:"id"`
+		Course
+	}
+	
+	DeleteCourseReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReq {
+		Id int64 `path:"id"`
+	}
+	
+	CourseInfoReply {
+		Id int64 `json:"id"`
+		Course
+	}
+	
+	CourseListReq {
+		Page int `form:"page,range=(0:]"`
+		Size int `form:"size,range=(0:]"`
+	}
+	
+	CourseListReply {
+		// 总条数
+		Total int `json:"total"`
+		// 当前返回数量，即list.length
+		Size int `json:"size"`
+		List []*CourseInfoReply `json:"list"`
+	}
 )
 
 @server(
-    jwt: Auth
-    middleware: AuthMiddleware
+	jwt: Auth
+	middleware: AuthMiddleware
 )
 service course-api {
-    @handler addCourse
-    post /api/course/add (AddCourseReq)
-
-    @handler editCourse
-    post /api/course/edit/:id (EditCourseReq)
-
-    @handler deleteCourse
-    post /api/course/delete/:id (DeleteCourseReq)
-
-    @handler getCourseInfo
-    get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
-
-    @handler getCourseList
-    get /api/course/list (CourseListReq) returns (CourseListReply)
+	@handler addCourse
+	post /api/course/add (AddCourseReq)
+	
+	@handler editCourse
+	post /api/course/edit/:id (EditCourseReq)
+	
+	@handler deleteCourse
+	post /api/course/delete/:id (DeleteCourseReq)
+	
+	@handler getCourseInfo
+	get /api/course/:id (CourseInfoReq) returns (CourseInfoReply)
+	
+	@handler getCourseList
+	get /api/course/list (CourseListReq) returns (CourseListReply)
 }
 ```
 
@@ -162,7 +161,6 @@ CREATE TABLE `course` (
   `classify` varchar(50) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '书籍分类，目前仅支持 【天文|地理|数学|物理|机械|航天|医学|信息|互联网|计算机】',
   `gender_limit` tinyint(1) NOT NULL DEFAULT '0' COMMENT '性别限制 0-不限，1-男，2-女',
   `member_limit` int DEFAULT '0' COMMENT '限制人数.0-不限',
-  `start_time` int NOT NULL DEFAULT '0' COMMENT '开课时间，时间戳，单位：秒',
   `credit` tinyint(1) NOT NULL DEFAULT '1' COMMENT '学分',
   `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -316,7 +314,6 @@ func convertFromDbToLogic(data model.Course) types.Course {
 		Classify:    data.Classify,
 		GenderLimit: int(data.GenderLimit),
 		MemberLimit: int(data.MemberLimit),
-		StartTime: data.StartTime,
 		Credit:    int(data.Credit),
 	}
 }
@@ -348,8 +345,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
     			Description: req.Description,
     			Classify:    req.Classify,
     			GenderLimit: int64(req.GenderLimit),
-    			MemberLimit:   int64(req.MemberLimit),
-    			StartTime:   req.StartTime,
+    			MemberLimit: int64(req.MemberLimit),
     			Credit:      int64(req.Credit),
     		})
     		return err
@@ -366,19 +362,13 @@ func convertFromDbToLogic(data model.Course) types.Course {
     	if len(strings.TrimSpace(req.Name)) == 0 {
     		return errorx.NewInvalidParameterError("name")
     	}
-    	
+    
     	if utf8.RuneCountInString(req.Name) > 20 {
     		return wordLimitErr("课程名称", 20)
     	}
     
     	if utf8.RuneCountInString(req.Description) > 500 {
     		return wordLimitErr("课程描述", 500)
-    	}
-    
-    	now := time.Now().AddDate(0, 0, 1)
-    	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-    	if req.StartTime < validEarliestStartTime.Unix() {
-    		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
     	}
     
     	return nil
@@ -406,7 +396,6 @@ func convertFromDbToLogic(data model.Course) types.Course {
     		data.Classify = req.Classify
     		data.GenderLimit = int64(req.GenderLimit)
     		data.MemberLimit = int64(req.MemberLimit)
-    		data.StartTime = req.StartTime
     		data.Credit = int64(req.Credit)
     		return l.svcCtx.CourseModel.Update(*data)
     	case model.ErrNotFound:
@@ -435,12 +424,6 @@ func convertFromDbToLogic(data model.Course) types.Course {
     
     	if utf8.RuneCountInString(req.Description) > 500 {
     		return wordLimitErr("课程描述", 500)
-    	}
-    
-    	now := time.Now().AddDate(0, 0, 1)
-    	validEarliestStartTime := time.Date(now.Year(), now.Month(), now.Day(), 8, 0, 0, 0, time.Local)
-    	if req.StartTime < validEarliestStartTime.Unix() {
-    		return errorx.NewDescriptionError(fmt.Sprintf("开课时间不能早于%s", validEarliestStartTime.Format("2006年01月02日 03时04分05秒")))
     	}
     
     	return nil

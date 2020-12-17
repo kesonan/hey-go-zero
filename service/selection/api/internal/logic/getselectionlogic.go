@@ -65,7 +65,6 @@ func (l *GetSelectionLogic) GetSelection(req types.SelectionIdReq) (*types.Selec
 			Classify:          courseInfo.Classify,
 			GenderLimit:       int(courseInfo.GenderLimit),
 			MemberLimit:       int(courseInfo.MemberLimit),
-			StartTime:         courseInfo.StartTime,
 			Credit:            int(courseInfo.Credit),
 			TeacherName:       teacherName,
 		})
