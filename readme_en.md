@@ -23,8 +23,6 @@ In addition, we will also introduce the use of go-zero tool goctl, such as:
 * Command introduction
 * Basic use
 
-For more documentation, please jump to [wiki]()
-
 # Issue
 If there is any inconvenience, difficulty in understanding, or errors in the reading process, please communicate via issue (the only way).
 
