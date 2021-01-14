@@ -22,6 +22,43 @@
   ![完成](../../resource/centos_04.png)
 * 完成保存为`master`
 
+## 设置静态ip
+* 分别在进入虚拟机设置，并对`网络适配器`进行设置，点击`高级选项`，生成MAC地址，要确保三个虚拟机的MAC地址不能一样，记住每个虚拟机名称对应的mac地址。
+  ![网络适配器](../../resource/vm_net.png)
+  ![网络适配器](../../resource/vm_mac.png)
+  ![网络适配器](../../resource/vm_mac2.png)
+  ![网络适配器](../../resource/vm_mac3.png)
+
+* 编辑dhcpd.conf
+  ``` shell
+  $ sudo vi /Library/Preferences/VMware\ Fusion/vmnet8/dhcpd.conf
+  ```
+* 指定master的ip为172.16.100.131，node1的ip为172.16.100.132，node2的ip为172.16.100.133,在文末填充如下内容后，保存。
+  ``` text
+  host master{
+          hardware ethernet 00:50:56:3F:71:76;
+          fixed-address 172.16.100.135;
+  }
+  
+  host node1{
+          hardware ethernet 00:50:56:3B:B7:98;
+          fixed-address 172.16.100.136;
+  }
+  
+  host node2{
+          hardware ethernet 00:50:56:2F:70:48;
+          fixed-address 172.16.100.137;
+  }
+  ```
+  
+## 克隆虚拟机
+> 至此，一台虚拟机已经准备好了，由于我们需要一台虚拟机来做master节点，2台虚拟机来做node节点，因此我们需要再克隆两台虚拟机出来。
+> 克隆的虚拟机和master配置一样的，因此不用重新重新配置了。
+> 在克隆前先关掉虚拟机
+
+![虚拟机克隆](../../resource/vm_clone.png)
+克隆出两台虚拟机名称分别为node1、node2
+
 ## 安装
 
 * 启动`master`虚拟机，进入centOS启动页
@@ -46,7 +83,7 @@
   ![centOS登录](../../resource/centos_login.png)
 * 至此，centOS就安装完成了
 
-# centOS设置
+## centOS设置
 
 > 这里为了操作美感，在启动虚拟机后通过在iTerm2中利用ssh链接到centOS后进行后续操作。
 
@@ -163,42 +200,9 @@ $ vi /etc/selinux/config
 ![虚拟机设置](../../resource/vm_cpu_mem.png)
 
 
-# 克隆虚拟机
-> 至此，一台虚拟机已经准备好了，由于我们需要一台虚拟机来做master节点，2台虚拟机来做node节点，因此我们需要再克隆两台虚拟机出来。
-> 克隆的虚拟机和master配置一样的，因此不用重新重新配置了。
-> 在克隆前先关掉虚拟机
 
-![虚拟机克隆](../../resource/vm_clone.png)
-克隆出两台虚拟机名称分别为node1、node2
 
-# 设置静态ip
-* 分别在进入虚拟机设置，并对`网络适配器`进行设置，点击`高级选项`，生成MAC地址，要确保三个虚拟机的MAC地址不能一样，记住每个虚拟机名称对应的mac地址。
-![网络适配器](../../resource/vm_net.png)
-![网络适配器](../../resource/vm_mac.png)
-![网络适配器](../../resource/vm_mac2.png)
-![网络适配器](../../resource/vm_mac3.png)
 
-* 编辑dhcpd.conf
-  ``` shell
-  $ sudo vi /Library/Preferences/VMware\ Fusion/vmnet8/dhcpd.conf
-  ```
-* 指定master的ip为172.16.100.131，node1的ip为172.16.100.132，node2的ip为172.16.100.133,在文末填充如下内容后，保存。
-  ``` text
-  host master{
-          hardware ethernet 00:50:56:3F:71:76;
-          fixed-address 172.16.100.131;
-  }
-  
-  host node1{
-          hardware ethernet 00:50:56:3B:B7:98;
-          fixed-address 172.16.100.132;
-  }
-  
-  host node2{
-          hardware ethernet 00:50:56:2F:70:48;
-          fixed-address 172.16.100.133;
-  }
-  ```
 ## 参考链接
 
 以上文档部分参考自[Centos7.6操作系统安装及优化全纪录](https://blog.51cto.com/3241766/2398136)
