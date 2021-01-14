@@ -4,7 +4,7 @@
 # 创建api目录
 在`service/source`下创建api目录得到目录树
 
-```text
+``` text
 course
 └── api
 ```
@@ -13,7 +13,7 @@ course
 在`service/course/api`文件夹`右键`->`New Api File`->`输入course`->`选择Empty file`->`回车`，
 然后修改course.api文件内容为
 
-```go
+``` go
 info(
 	title: "课程管理api"
 	desc: "描述课程添加、编辑、删除、查看等协议"
@@ -104,15 +104,15 @@ service course-api {
     * 选中`course.api`文件->`右键`->`Open in Terminal`
     * 执行`goctl api go -api course.api -dir .`命令即可
     
-        ```shell script
+        ``` shell script
         $ goctl api go -api course.api -dir .
         ```
-        ```text
+        ``` text
         Done.
         ```
 接下来我们进入`service/course/api`目录，查看一下目录树结构
   
-```text
+``` text
 course/api
 ├── course.api
 ├── course.go
@@ -153,7 +153,7 @@ course/api
 ### 新建表course
 在前面我们已经演示了如何[创建db和table](../../../doc/prepare/db-create.md) ，我们在`heygozero`新建一张表名为`course`,create table ddl如下：
 
-```mysql
+``` mysql
 CREATE TABLE `course` (
   `id` bigint NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '书籍名称',
@@ -172,15 +172,15 @@ CREATE TABLE `course` (
 ### 生成代码
 在文件夹`service/course/model`右键->`Open in Terminal` 进入终端
 
-```shell script
+``` shell script
 $ goctl model mysql datasource -url="ugozero@tcp(127.0.0.1:3306)/heygozero" -table="course" -c -dir .
 ```
-```text
+``` text
 Done.
 ```
 
 生成后我么可以看到会产生两个文件
-```text
+``` text
 model
 ├── coursemodel.go
 └── vars.go
@@ -191,7 +191,7 @@ model
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/course/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -214,7 +214,7 @@ model
   
 * 打开`service/course/api/etc/course-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
-    ```yaml
+    ``` yaml
     Name: course-api
     Host: 0.0.0.0
     Port: 8889
@@ -234,7 +234,7 @@ model
 # ServiceContext增加`CourseModel`资源
 进入文件`service/course/api/internal/svc/servicecontext.go`，添加`CourseModel`资源依赖。
 
-```go
+``` go
 package svc
 
 import (
@@ -265,7 +265,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 # 添加用户信息校验中间件(全局)和自定义错误码
 由于在user api中已经添加过`UserCheck`用户信息校验中间件和[自定义错误码](../../../doc/gozero/http-error.md)了，这里就直接在main文件中使用即可。
 
-```go
+``` go
 func main() {
 	flag.Parse()
 
@@ -292,7 +292,7 @@ func main() {
 ## 创建error.go文件
 在`service/course/api/internal/logic`目录下新增`error.go`文件，填充代码
 
-```go
+``` go
 var (
 	errCourseNotFound = errorx.NewDescriptionError("课程不存在")
 )
@@ -301,7 +301,7 @@ var (
 ## 添加common.go
 在`service/course/api/internal/logic`目录下新增`common.go`文件，填充代码
 
-```go
+``` go
 import (
 	"hey-go-zero/service/course/api/internal/types"
 	"hey-go-zero/service/course/model"
@@ -324,7 +324,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 方法：`AddCourse`
 * 代码内容
 
-    ```go
+    ``` go
     func (l *AddCourseLogic) AddCourse(req types.AddCourseReq) error {
     	if err := l.parametersCheck(req); err != nil {
     		return err
@@ -382,7 +382,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 方法：`EditCourse`
 * 代码内容
 
-    ```go
+    ``` go
     func (l *EditCourseLogic) EditCourse(req types.EditCourseReq) error {
     	if err := l.parametersCheck(req); err != nil {
     		return err
@@ -435,7 +435,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 方法：`DeleteCourse`
 * 代码内容
 
-    ```go
+    ``` go
     func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteCourseReq) error {
     	if req.Id <= 0 {
     		return errorx.NewInvalidParameterError("id")
@@ -458,7 +458,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 方法：`GetCourseInfo`
 * 代码内容
 
-    ```go
+    ``` go
     func (l *GetCourseInfoLogic) GetCourseInfo(req types.CourseInfoReq) (*types.CourseInfoReply, error) {
         if req.Id <= 0 {
             return nil, errorx.NewInvalidParameterError("id")
@@ -484,7 +484,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 * 添加分页查询逻辑
     * 在interface中添加两个方法`FindAllCount`和`FindLimit`
     
-        ```go
+        ``` go
         CourseModel interface {
             Insert(data Course) (sql.Result, error)
             FindOne(id int64) (*Course, error)
@@ -497,7 +497,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
         ```
     * 在添加两个default实现方法
         
-        ```go
+        ``` go
         func (m *defaultCourseModel) FindAllCount() (int, error) {
         	query := fmt.Sprintf("select count(id) from %s", m.table)
         	var count int
@@ -517,7 +517,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
   * 方法：`GetCourseList`
   * 代码内容：
   
-    ```go
+    ``` go
     func (l *GetCourseListLogic) GetCourseList(req types.CourseListReq) (*types.CourseListReply, error) {
     	total, err := l.svcCtx.CourseModel.FindAllCount()
     	if err != nil {
@@ -549,7 +549,7 @@ func convertFromDbToLogic(data model.Course) types.Course {
 S、M。我们这里就限制仅M可访问该层协议，在实现中间件逻辑前，我们先手动添加一个角色用为M的用户到数据库（为了简单，这里就不单独对角色为M的用户进行管理了，直接手动插入数据库）
 
 ### 添加管理员角色用户
-```mysql
+``` mysql
 $ mysql -h 127.0.0.1 -uugozero -p
   Enter password:
   Welcome to the MySQL monitor.  Commands end with ; or \g.
@@ -598,7 +598,7 @@ $ mysql -h 127.0.0.1 -uugozero -p
 ### 添加`UserRpc`配置定义和yaml配置项
 * 编打开`service/course/api/internal/config/config.go`，添加`UserRpc`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -623,7 +623,7 @@ $ mysql -h 127.0.0.1 -uugozero -p
   
 * 打开`service/course/api/etc/course-api.yaml`文件，添加`UserRpc`配置项
 
-    ```yaml
+    ``` yaml
     Name: course-api
     Host: 0.0.0.0
     Port: 8889
@@ -648,7 +648,7 @@ $ mysql -h 127.0.0.1 -uugozero -p
 ### ServiceContext增加`UserRpcClient`资源
 打开`service/course/api/internal/svc/servicecontext.go`，添加`UserRpcClient`依赖。
 
-```go
+``` go
 package svc
 
 import (
@@ -686,7 +686,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 * 添加`userRpcClient`依赖
 
-    ```go
+    ``` go
     type AuthMiddleware struct {
     	userRpcClient userservice.UserService
     }
@@ -699,7 +699,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
     ```
 * 完善中间件逻辑
 
-    ```go
+    ``` go
     userId, ok := jwtx.GetUserId(w, r)
     if !ok {
         return
@@ -732,50 +732,50 @@ func NewServiceContext(c config.Config) *ServiceContext {
 ## 启动user.api
 进入文件夹`service/user/api`，右键进入Idea终端
 
-```shell script
+``` shell script
 $ go run user.go 
 ```
 
-```text
+``` text
 Starting server at 0.0.0.0:8888...
 ```
 
 ## 启动redis
 
-```shell script
+``` shell script
 $ redis-server
 ```
 
 ## 启动etcd
 
-```shell script
+``` shell script
 $ etcd
 ```
 
 ## 启动user.rpc
 进入文件夹`service/user/rpc`，通过右键进入Idea终端
 
-```shell script
+``` shell script
 $ go run user.go
 ```
-```text
+``` text
 Starting rpc server at 127.0.0.1:8080...
 ```
 
 ## 启动course-api服务
 进入文件夹`service/course/api`，右键进入Idea终端
 
-```shell script
+``` shell script
 $ go run course.go
 ```
-```text
+``` text
 Starting server at 0.0.0.0:8889...
 ```
 
 ## 访问服务
 * 登录
 
-```shell script
+``` shell script
 $ curl -i -X POST \
     http://127.0.0.1:8888/api/user/login \
     -H 'cache-control: no-cache' \
@@ -785,7 +785,7 @@ $ curl -i -X POST \
       "password":"111111"
   }'
 ```
-```text
+``` text
 HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Sun, 13 Dec 2020 12:48:58 GMT
@@ -798,7 +798,7 @@ Content-Length: 178
 
     我们先用一个非管理员身份去访问试一下（重新以其他身份登录获取token）
     
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8889/api/course/add \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4Njc1MjYsImlhdCI6MTYwNzg2MzkyNiwiaWQiOjF9.-CfZi6UQ5SFEQkyVZizPyvT6oQkZ7oAMWRVTGthWl8U' \
@@ -808,7 +808,7 @@ Content-Length: 178
         
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 406 Not Acceptable
     Content-Type: application/json
     Date: Sun, 13 Dec 2020 12:55:41 GMT
@@ -820,7 +820,7 @@ Content-Length: 178
     正如我们所期望的那样，非管理员身份是禁止访问的。所以这里我们的中间件生效了；
     下面我们以管理员身份去操作课程吧
     
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8889/api/course/add \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
@@ -835,13 +835,13 @@ Content-Length: 178
       	"credit":1
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Sun, 13 Dec 2020 13:12:22 GMT
     Content-Length: 0
     ```
     再以相同的参数去请求一次会得到
-    ```text
+    ``` text
     HTTP/1.1 406 Not Acceptable
     Content-Type: application/json
     Date: Sun, 13 Dec 2020 13:13:04 GMT
@@ -854,7 +854,7 @@ Content-Length: 178
 
     我们先找一个不存在的id去编辑一下，验证一下逻辑
     
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8889/api/course/edit/3 \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
@@ -869,7 +869,7 @@ Content-Length: 178
       	"credit":1
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 406 Not Acceptable
     Content-Type: application/json
     Date: Sun, 13 Dec 2020 13:15:30 GMT
@@ -879,7 +879,7 @@ Content-Length: 178
     ```
     正如我们预料的那样会提示`课程不存在`的错误。
     下面我们来对之前添加过的课程做一下编辑
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8889/api/course/edit/2 \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
@@ -894,7 +894,7 @@ Content-Length: 178
         "credit":1
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Sun, 13 Dec 2020 13:18:31 GMT
     Content-Length: 0
@@ -902,14 +902,14 @@ Content-Length: 178
 
 * 查询课程
 
-    ```shell script
+    ``` shell script
     $ curl -i -X GET \
         http://127.0.0.1:8889/api/course/2 \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
         -H 'content-type: application/json' \
         -H 'x-user-id: 2'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Content-Type: application/json
     Date: Sun, 13 Dec 2020 13:19:54 GMT
@@ -920,14 +920,14 @@ Content-Length: 178
   
 * 获取课程列表
 
-    ```shell script
+    ``` shell script
     $ curl -i -X GET \
         'http://127.0.0.1:8889/api/course/list?page=1&size=10' \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
         -H 'content-type: application/json' \
         -H 'x-user-id: 2'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Content-Type: application/json
     Date: Sun, 13 Dec 2020 13:22:51 GMT
@@ -937,14 +937,14 @@ Content-Length: 178
     ```
 * 删除课程
     
-    ```shell script
+    ``` shell script
     curl -i -X POST \
       http://127.0.0.1:8889/api/course/delete/2 \
       -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDc4NjczMzgsImlhdCI6MTYwNzg2MzczOCwiaWQiOjJ9.NPcA430BHJ3L_V_JsJiOEt00GAPIb2PMhN0TOnbc5Xk' \
       -H 'content-type: application/json' \
       -H 'x-user-id: 2'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Sun, 13 Dec 2020 13:18:31 GMT
     Content-Length: 0  

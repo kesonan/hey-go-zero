@@ -6,7 +6,7 @@
 # 创建api目录
 进入`user`模块下创建api目录得到
 
-```text
+``` text
 service
     ├── course
     ├── schedule
@@ -21,7 +21,7 @@ service
 * 在`api`目录文件夹上`右键`->`New Api File`->`输入user`->`选择Empty file`->`回车`
 * 修改user.api文件内容为
 
-    ```text
+    ``` text
     info(
     	title: "用户系统"
     	desc: "用户模块api描述文件，详细需求说明请见hey-go-zero/doc/requirement/user.md"
@@ -99,18 +99,18 @@ service
     * 选中`user.api`文件->`右键`->`Open in Terminal`
     * 执行`goctl api go -api user.api -dir .`命令即可
     
-        ```shell script
+        ``` shell script
         $ goctl api go -api user.api -dir .
         ```
-        ```text
+        ``` text
         Done.
         ```
 接下来我们看一下生成代码的目录树，在终端下进入`user/api`目录
 
-```shell script
+``` shell script
 $ tree
 ```
-```text
+``` text
 .
 ├── etc // yaml配置文件
 │   └── user-api.yaml
@@ -163,7 +163,7 @@ yaml配置文件需要配置什么配置项完全参考于`api/internal/config`�
 ```
 所以在生成代码时，配置项定义也生成好了，接下来看一下目前已经定义的配置：
 
-```go
+``` go
 type Config struct {
 	rest.RestConf
 	Auth struct {
@@ -190,7 +190,7 @@ Auth配置包含`AccessSecret`和`AccessExpire`两个配置项，分别为jwt密
 
 接下来我们编辑`api/etc/user-api.yaml`文件，添加配置上述配置项
 
-```yaml
+``` yaml
 Name: user-api
 Host: 0.0.0.0
 Port: 8888
@@ -203,21 +203,21 @@ Auth:
 
 # 启动user api服务
 
-```shell script
+``` shell script
 $ go run user.go
 ```
-```text
+``` text
 Starting server at 0.0.0.0:8888...
 ```
 
 # 尝试访问服务
 这里我们先来访问一下获取用户信息的协议
 
-```shell script
+``` shell script
 $ curl -i -X GET \
     http://localhost:8888/api/user/info/self
 ```
-```text
+``` text
 HTTP/1.1 401 Unauthorized
 Date: Thu, 03 Dec 2020 14:40:11 GMT
 Content-Length: 0
@@ -228,7 +228,7 @@ Content-Length: 0
 
 # 创建user表
 
-```mysql
+``` mysql
 CREATE TABLE `user` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '用户id',
   `username` varchar(50) COLLATE utf8mb4_general_ci NOT NULL COMMENT '登录用户名',
@@ -248,16 +248,16 @@ CREATE TABLE `user` (
 # 生成带redis缓存的usermodel代码
 首先进入`service/user`目录，右键`user`文件夹进入终端
 
-```shell script
+``` shell script
 $ goctl model mysql datasource -url="ugozero@tcp(127.0.0.1:3306)/heygozero" -table="user" -c -dir ./model
 ```
-```text
+``` text
 Done.
 ```
 
 生成完毕后会在`service/user`目录下会多一个`model`文件夹，其包含内容如下:
 
-```text
+``` text
 model
 ├── usermodel.go
 └── vars.go
@@ -268,7 +268,7 @@ model
 
 创建`regex.go`文件，填充代码:
 
-```go
+``` go
 package regex
 
 import "regexp"
@@ -289,7 +289,7 @@ func Match(s, reg string) bool {
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/user/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -312,7 +312,7 @@ func Match(s, reg string) bool {
   
 * 打开`service/user/api/etc/user-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
-    ```yaml
+    ``` yaml
     Name: user-api
     Host: 0.0.0.0
     Port: 8888
@@ -332,7 +332,7 @@ func Match(s, reg string) bool {
 # ServiceContext增加`UserModel`资源
 打开`service/user/api/internal/svc/servicecontext.go`，添加`UserModel`依赖。
 
-```go
+``` go
 package svc
 
 import (
@@ -363,7 +363,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 ### 添加`error.go`文件
 在`service/user/api/internal/logic`下创建`error.go`文件，添加自定义错误类型
 
-```go
+``` go
 var (
 	InvalidUsername = errorx.NewInvalidParameterError("username")
 	InvalidPassword = errorx.NewInvalidParameterError("password")
@@ -373,7 +373,7 @@ var (
 ### 填充注册逻辑
 打开`service/user/api/internal/logic/noauth/registerlogic.go`文件，编辑`Register`方法：
 
-```go
+``` go
 if !regex.Match(req.Username, regex.Username) {
     return logic.InvalidUsername
 }
@@ -400,22 +400,22 @@ default:
 
 启动redis
 
-```shell script
+``` shell script
 $ redis-server
 ```
 
 启动user api服务，访问注册协议。
 
-```shell script
+``` shell script
 $ go run user.go
 ```
-```text
+``` text
 Starting server at 0.0.0.0:8888...
 ```
 
 访问注册协议
 
-```shell script
+``` shell script
 $ curl -i -X POST \
     http://localhost:8888/api/user/register \
     -H 'content-type: application/json' \
@@ -425,14 +425,14 @@ $ curl -i -X POST \
           "role":"student"
   }'
 ```
-```text
+``` text
 HTTP/1.1 200 OK
 Date: Fri, 04 Dec 2020 09:46:58 GMT
 Content-Length: 0
 ```
 再次发起同样的请求你得到
 
-```text
+``` text
 HTTP/1.1 406 Not Acceptable
 Content-Type: application/json
 Date: Fri, 04 Dec 2020 13:19:11 GMT
@@ -447,7 +447,7 @@ Content-Length: 39
 
 我们访问redis查看一下。
 
-```shell script
+``` shell script
 $ 127.0.0.1:6379> get cache#User#username#songmeizi
   "1"
   127.0.0.1:6379> get cache#User#id#1
@@ -457,7 +457,7 @@ $ 127.0.0.1:6379> get cache#User#username#songmeizi
 
 > 说明：在`usermodel.go`中可查看到redis key prefix，具体拼接规则，你可以自行看一下`usermodel.go`中代码。
 > 如：
-> ```text
+> ``` text
 > cacheUserUsernamePrefix = "cache#User#username#"
 > cacheUserIdPrefix       = "cache#User#id#"
 > ```
@@ -468,7 +468,7 @@ $ 127.0.0.1:6379> get cache#User#username#songmeizi
 ## 创建`jwtx.go`
 在`hey-go-zero/common`创建一个文件夹`jwtx`和文件`jwtx.go`,添加如下代码
 
-```go
+``` go
 package jwtx
 
 import (
@@ -501,7 +501,7 @@ func GetUserId(w http.ResponseWriter, r *http.Request) (int64, bool) {
 ### 填充登录逻辑
 打开`service/user/api/internal/logic/noauth/loginlogic.go`文件，在`Login`中添加如下代码逻辑：
 
-```go
+``` go
 if !regex.Match(req.Username, regex.Username) {
     return nil, logic.InvalidUsername
 }
@@ -535,7 +535,7 @@ default:
 ```
 `generateJwtToken`方法：
 
-```go
+``` go
 func (l *LoginLogic) generateJwtToken(id int64, iat int64) (string, int64, error) {
 	claims := make(jwt.MapClaims)
 	expireAt := iat + l.svcCtx.Config.Auth.AccessExpire
@@ -554,7 +554,7 @@ func (l *LoginLogic) generateJwtToken(id int64, iat int64) (string, int64, error
 
 启动服务，请求一下登录协议
 
-```shell script
+``` shell script
 $ curl -i -X POST \
     http://localhost:8888/api/user/login \
     -H 'content-type: application/json' \
@@ -563,7 +563,7 @@ $ curl -i -X POST \
   	"password":"111111"
   }'
 ```
-```text
+``` text
 HTTP/1.1 200 OK
 Content-Type: application/json
 Date: Fri, 04 Dec 2020 14:18:07 GMT
@@ -576,19 +576,19 @@ Content-Length: 178
 和上面一样，找到对应的logic文件`service/user/api/internal/logic/auth/userinfologic.go`，找到`UserInfo`方法，发现这里没有请求参数，那么我们通过什么样式获取到当前请求户用户的
 用户信息呢？
 * 编辑`service/user/api/internal/logic/error.go`,添加代码
-    ```go
+    ``` go
     ErrUserNotFound = errorx.NewDescriptionError("用户不存在")
     ```
 * 给`UserInfo`方法中添加请求参数`id int64`
 * 找到`UserInfo`的调用方`service/user/api/internal/handler/auth/userinfohandler.go`,在方法`UserInfoHandler`中添加代码
-    ```go
+    ``` go
     id,ok:=jwtx.GetUserId(w,r)
     if !ok{
         return
     }
     ```
     完整代码
-    ```go
+    ``` go
     func UserInfoHandler(ctx *svc.ServiceContext) http.HandlerFunc {
     	return func(w http.ResponseWriter, r *http.Request) {
     		id,ok:=jwtx.GetUserId(w,r) // add
@@ -607,7 +607,7 @@ Content-Length: 178
     }
     ```
 * 在`userinfologic`添加全局定义
-    ```go
+    ``` go
     var genderConvert = map[int64]string{
     	0: "未知",
     	1: "男",
@@ -616,7 +616,7 @@ Content-Length: 178
     ```
 * 填充`UserInfo`方法逻辑
     
-    ```go
+    ``` go
     resp, err := l.svcCtx.UserModel.FindOne(id)
     switch err {
     case nil:
@@ -638,14 +638,14 @@ Content-Length: 178
 最终代码如下:
 
 * 找到`UserInfoEdit`的调用方`service/user/api/internal/handler/auth/userinfoedithandler.go`,在方法`UserInfoEditHandler`中添加代码
-    ```go
+    ``` go
     id,ok:=jwtx.GetUserId(w,r)
     if !ok{
         return
     }
     ```
     完整代码
-    ```go
+    ``` go
     func UserInfoEditHandler(ctx *svc.ServiceContext) http.HandlerFunc {
     	return func(w http.ResponseWriter, r *http.Request) {
     		var req types.UserInfoReq
@@ -671,7 +671,7 @@ Content-Length: 178
     ```
 * 填充`UserInfoEdit`方法逻辑
     
-    ```go
+    ``` go
     // 全量更新，允许字段为空
     resp, err := l.svcCtx.UserModel.FindOne(id)
     switch err {
@@ -699,7 +699,7 @@ Content-Length: 178
 
 在`common`下创建`middleware`文件夹，并添加`usercheckmiddleware.go`文件，填入代码：
 
-```go
+``` go
 package middleware
 
 import (
@@ -731,7 +731,7 @@ func UserCheck(next http.HandlerFunc) http.HandlerFunc {
 ```
 
 修改user.api文件夹，给修改用户信息、获取用户信息两条协议添加middleware标志
-```go
+``` go
 @server(
 	jwt: Auth
 	group: auth
@@ -748,7 +748,7 @@ service user-api {
 
 重新生成api代码，修改文件`service/user/api/internal/svc/servicecontext.go`,添加`UserCheck`中间件声明，
 
-```go
+``` go
 type ServiceContext struct {
 	Config    config.Config
 	UserModel model.UserModel
@@ -766,7 +766,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 ```
 
 填充中间逻辑，修改`service/user/api/internal/middleware/usercheckmiddleware.go`,填充`Handle`方法代码：
-```go
+``` go
 return middleware.UserCheck(next)
 ```
 
@@ -774,7 +774,7 @@ return middleware.UserCheck(next)
 最后请求来验证一下以上两条协议
 
 * 修改用户信息
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://localhost:8888/api/user/info/edit \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
@@ -785,7 +785,7 @@ return middleware.UserCheck(next)
           "gender": "男"
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Fri, 04 Dec 2020 15:07:59 GMT
     Content-Length: 0
@@ -793,14 +793,14 @@ return middleware.UserCheck(next)
 
 * 获取用户信息
 
-    ```shell script
+    ``` shell script
     $ curl -i -X GET \
         http://localhost:8888/api/user/info/self \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwOTUwMDksImlhdCI6MTYwNzA5MTQwOSwiaWQiOjF9.qx_t1dY3LEoQc-GtGBDASSHpyYx1iba7YrlJyGNk-nA' \
         -H 'content-type: application/json' \
         -H 'x-user-id: 1'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Content-Type: application/json
     Date: Fri, 04 Dec 2020 15:09:22 GMT

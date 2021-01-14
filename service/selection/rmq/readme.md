@@ -6,7 +6,7 @@
 * 在`rmq`目录下创建`selection.go`文件
 * 然后在`rmq`目录下创建以下目录结构
     
-    ```text
+    ``` text
     rmq
     ├── etc
     │   └── selection-rmq.yaml
@@ -27,7 +27,7 @@
     * 文件位置：`service/selection/rmq/internal/config/config.go`
     * 代码内容：
     
-        ```go
+        ``` go
         package config
         
         import (
@@ -44,7 +44,7 @@
     * 文件位置：`service/selection/rmq/etc/selection-rmq.yaml`
     * 代码内容：
     
-        ```yaml
+        ``` yaml
         Name: selection.rmq
         Log:
           Mode: console
@@ -64,7 +64,7 @@
 * 文件位置：`service/selection/rmq/internal/svc/servicecontext.go`
 * 代码内容：
 
-    ```go
+    ``` go
     package svc
     
     import (
@@ -90,7 +90,7 @@
 * 文件位置：`service/selection/rmq/internal/logic/consumer.go`
 * 代码位置：
 
-    ```go
+    ``` go
     package logic
     
     import (
@@ -132,7 +132,7 @@
 * 文件位置：`service/selection/rmq/selection.go`
 * 代码内容：
 
-    ```go
+    ``` go
     package main
     
     import (
@@ -169,12 +169,12 @@
 
 ## 启动服务
 前面需要启动的步骤和[选课api模块](../api/readme.md)一样,最后在启动本服务
-```shell script
+``` shell script
 $ go run selection.go
 ```
 
 ## 创建选课
-```shell script
+``` shell script
 $ curl -i -X POST \
     http://127.0.0.1:8890/api/selection/create \
     -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgyMTU5MjgsImlhdCI6MTYwODIxMjMyOCwiaWQiOjJ9.NKTaSB5CHyaoaWQOhwa6QM-ZhHDAojmsFK_dj9gOzCY' \
@@ -190,7 +190,7 @@ $ curl -i -X POST \
 ```
 > 说明：代码中消费的时间点是startTime前两小时，这里为了不等待太长时间来验证消费消息，你可以设置startTime为当前时间往后推2小时01分钟，那么消息就将会在1分钟后消费。
 ## 等待消费
-```shell script
+``` shell script
 {"@timestamp":"2020-12-17T21:49:10.291+08","level":"stat","content":"CPU: 0m, MEMORY: Alloc=0.6Mi, TotalAlloc=0.6Mi, Sys=70.2Mi, NumGC=0"}
 {"@timestamp":"2020-12-17T21:50:10.298+08","level":"stat","content":"CPU: 0m, MEMORY: Alloc=0.6Mi, TotalAlloc=0.6Mi, Sys=70.2Mi, NumGC=0"}
 {"@timestamp":"2020-12-17T21:51:10.295+08","level":"stat","content":"CPU: 0m, MEMORY: Alloc=0.6Mi, TotalAlloc=0.6Mi, Sys=70.2Mi, NumGC=0"}

@@ -7,21 +7,21 @@
 # 添加mysql用户
 * 登录mysql
 
-    ```shell script
+    ``` shell script
     $ mysql -h 127.0.0.1 -uroot -p
     Enter password:
     ```
   
 * 添加用户`ugozero`,这里就不设置密码了。
 
-    ```mysql
+    ``` mysql
     mysql> create user 'ugozero'@'127.0.0.1' identified by '';
     Query OK, 0 rows affected (0.02 sec)
     ```
   
 * 给用户`ugozero`授权数据库和表权限
 
-    ```mysql
+    ``` mysql
     mysql> grant all privileges on *.* to 'ugozero'@'127.0.0.1';
     Query OK, 0 rows affected (0.02 sec)
     ```
@@ -30,7 +30,7 @@
 
 * 给用户`ugozero`授权读写权限
 
-    ```mysql
+    ``` mysql
     mysql> grant all privileges on *.* to 'ugozero'@'127.0.0.1'  WITH GRANT OPTION;
    Query OK, 0 rows affected (0.00 sec)
     ```
@@ -39,7 +39,7 @@
 
 * 刷新新用户
     
-    ```mysql
+    ``` mysql
     mysql> FLUSH PRIVILEGES;
     Query OK, 0 rows affected (0.01 sec) 
     ```
@@ -66,7 +66,7 @@ $ mysql -h 127.0.0.1 -uugozero -p
 
 # 创建DB
 
-```mysql
+``` mysql
 mysql> create database if not exists heygozero character set utf8mb4 collate utf8mb4_general_ci;
 Query OK, 1 row affected (0.01 sec)
 ```

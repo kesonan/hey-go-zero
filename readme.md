@@ -9,7 +9,7 @@
 # 项目介绍
 hey-go-zero是基于[go-zero](https://github.com/tal-tech/go-zero) 的一个示例工程，通过一个简单的`选课`
 系统来介绍一个项目的基本过程：
-* 需求评估
+* 需求概况
 * 研发
 * 测试
 * 部署

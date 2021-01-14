@@ -7,7 +7,7 @@
 
 # Project Structure
 
-```text
+``` text
 greet                           [1]
 ├── common                      [2]
 │   └── util
@@ -47,7 +47,7 @@ greet                           [1]
 在Project Structure中我们已经提到了在微服务层级中还会对每个微服务进行分类，如`api`、`rpc`、`script`等，在这一层级上，我们还需要在其下层创建目录层级，这里推荐以下目录结构，这里并非固定为
 该结构，你可以适当根据需要添加或者增减。如api服务还会有`handler`、`svc`、`types`层
 
-```text
+``` text
 .
 ├── etc                             [1]
 │   └── user.yaml
@@ -67,7 +67,7 @@ greet                           [1]
 
 # Api Structure (Goctl生成版本)
 
-```text
+``` text
 api
 ├── etc                                 [1]
 │   └── user-api.yaml
@@ -105,7 +105,7 @@ api
 
 # Rpc Structure (Goctl生成版本)
 
-```text
+``` text
 rpc
 ├── etc                                         [1]
 │   └── user.yaml
@@ -142,7 +142,7 @@ rpc
 
 # Model Structure (Goctl生成版本)
 
-```text
+``` text
 model
 ├── usermodel.go
 └── vars.go

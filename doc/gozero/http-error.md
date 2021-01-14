@@ -6,7 +6,7 @@
 增加一些自定义错误类型
 在项目工程下，创建一个`common/errorx`文件夹，创建`codeerror.go`文件，添加如下代码：
 
-```go
+``` go
 package errorx
 
 import (
@@ -97,13 +97,13 @@ func (e *InvalidParameterError) Error() string {
 
 # 设置自定义错误处理函数
 在api的main函数中添加两行内容
-```go
+``` go
 errHandler := errorx.Handler{}
 httpx.SetErrorHandler(errHandler.Handle())
 ```
 
 完整代码
-```go
+``` go
 func main() {
     flag.Parse()
     

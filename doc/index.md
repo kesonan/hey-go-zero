@@ -44,7 +44,7 @@ $ echo hello
 
 # 目录
 * [首页](../readme.md)
-* [准备工作](./prepare)
+* 准备工作
     * [准备工作](./prepare/prepare.md)
     * [Goctl介绍](./prepare/goctl-intro.md)
     * [服务目录](./prepare/service-structure.md)
@@ -54,11 +54,21 @@ $ echo hello
     * [数据库准备工作](./prepare/db-create.md)
     * [常见FAQ集合](./prepare/faq.md)
     
-* [需求概况](./requirement)
+* 需求概况
     * [需求说明](./requirement/summary.md)
         * [用户模块](./requirement/user.md)
         * [课程模块](./requirement/course.md)
         * [选课模块](./requirement/selection.md)
+* 研发 
+  * 略
+* 测试
+  * 略
+* 部署
+    * [部署准备](./deployment/prepare.md)
+    * [服务部署](./deployment/deployment.md)
+* 日志收集
+* 指标监控
+* 报警
     
 # 技术要点
 * [user-api](../service/user/api/readme.md)

@@ -47,13 +47,13 @@
 ### 使用方法
 
 目前可通过在生成api、rpc、model时通过`--style`参数指定format格式，如：
-```shell script
+``` shell script
 goctl api go test.api -dir . -style gozero
 ```
-```shell script
+``` shell script
  goctl rpc proto -src test.proto -dir . -style go_zero
 ```
-```shell script
+``` shell script
 goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
 ```
 
@@ -64,7 +64,7 @@ goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
 
 * 错误一:
 
-  ```golang
+  ``` golang
   pb/xx.pb.go:220:7: undefined: grpc.ClientConnInterface
   pb/xx.pb.go:224:11: undefined: grpc.SupportPackageIsVersion6
   pb/xx.pb.go:234:5: undefined: grpc.ClientConnInterface
@@ -75,7 +75,7 @@ goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
 
 * 错误二:
 
-  ```golang
+  ``` golang
 
   # go.etcd.io/etcd/clientv3/balancer/picker
   ../../../go/pkg/mod/go.etcd.io/etcd@v0.0.0-20200402134248-51bdeb39e698/clientv3/balancer/picker/err.go:25:9: cannot use &errPicker literal (type *errPicker) as type Picker in return argument:*errPicker does not implement Picker (wrong type for Pick method)
@@ -97,7 +97,7 @@ goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
 
   解决方法：
   
-    ```golang
+    ``` golang
     replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
     ```
   

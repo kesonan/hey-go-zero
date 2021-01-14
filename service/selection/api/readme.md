@@ -7,7 +7,7 @@
 # 创建api目录
 在`service/selection`下创建api目录得到目录树
 
-```text
+``` text
 selection
 └── api
 ```
@@ -16,7 +16,7 @@ selection
 在`service/selection/api`文件夹`右键`->`New Api File`->`输入course`->`选择Empty file`->`回车`，
 然后修改selection.api文件内容为
 
-```go
+``` go
 type (
 	Course {
 		Id int64 `json:"id"`
@@ -157,19 +157,19 @@ service selection-api {
     * 选中`selection.api`文件->`右键`->`Open in Terminal`
     * 执行`goctl api go -api selection.api -dir .`命令即可
     
-        ```shell script
+        ``` shell script
         $ goctl api go -api selection.api -dir .
         ```
-        ```text
+        ``` text
         Done.
         ```
 接下来我们进入`service/selection/api`目录，查看一下目录树结构
 
-```shell script
+``` shell script
 $ tree
 ```
 
-```text
+``` text
 selection/api
 ├── etc
 │   └── selection-api.yaml
@@ -219,7 +219,7 @@ selection/api
 
 在前面我们已经演示了如何[创建db和table](../../../doc/prepare/db-create.md) ，我们在`heygozero`新建一张表名为`selection`、`selection_scourse`、`selection_student`,create table ddl如下：
 
-```mysql
+``` mysql
 -- 选课表 --
 CREATE TABLE `selection` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -263,15 +263,15 @@ CREATE TABLE `selection_student` (
 
 # 生成代码
 在文件夹`service/selection`右键->`Open in Terminal` 进入终端
-```shell script
+``` shell script
 $ goctl model mysql datasource -url="ugozero@tcp(127.0.0.1:3306)/heygozero" -table="selection*" -c -dir ./model
 ```
-```text
+``` text
 Done.
 ```
 
 生成后我么可以看到会产生4个文件
-```text
+``` text
 model
 ├── selectionmodel.go
 ├── selectionscoursemodel.go
@@ -288,7 +288,7 @@ model
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/course/api/internal/config/config.go`，添加`Mysql`、`CacheRedis`、`BizRedis`、UserRpc`、`CourseRpc`、`Dq`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -317,7 +317,7 @@ model
   
 * 打开`service/selection/api/etc/selection-api.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
-    ```yaml
+    ``` yaml
     Name: selection-api
     Host: 0.0.0.0
     Port: 8890
@@ -364,7 +364,7 @@ model
 
 删除`service/selection/api/internal/middleware`目录下的文件，添加`usercheckmiddleware.go`
 
-```go
+``` go
 package middleware
 
 import (
@@ -428,7 +428,7 @@ func (m *UserCheckMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 # ServiceContext增加`SelectionModel`、`SelectionCourseModel`等资源
 进入文件`service/selection/api/internal/svc/servicecontext.go`，添加`SelectionModel`、`SelectionCourseModel`等资源依赖。
 
-```go
+``` go
 type ServiceContext struct {
 	Config                config.Config
 	ManagerCheck          rest.Middleware
@@ -469,7 +469,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 # 添加自定义错误码
 由于在user api中已经添加过[自定义错误码](../../../doc/gozero/http-error.md)了，这里就直接在main文件中使用即可。
 
-```go
+``` go
 func main() {
 	flag.Parse()
 
@@ -494,7 +494,7 @@ func main() {
 
 ### 增加error.go文件
 在`service/selection/api/internal/logic`目录下创建`error.go`文件，填充代码
-```go
+``` go
 var (
 	errCourseNotFound          = errorx.NewDescriptionError("课程不存在")
 	errSelectionNotFound       = errorx.NewDescriptionError("选课任务不存在")
@@ -510,7 +510,7 @@ var (
 ### 添加`common.go`文件
 在`service/selection/api/internal/logic`目录下添加`common.go`文件，用于存放选课创建、编辑等逻辑的公用逻辑，填充代码
 
-```go
+``` go
 func checkCourseSelection(in types.CreateSelectionReq) error {
 	if len(strings.TrimSpace(in.Name)) == 0 {
 		return errorx.NewInvalidParameterError("name")
@@ -550,7 +550,7 @@ func lengthAlert(hint string, length int) error {
 * 方法名: `CreateSelection`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *CreateSelectionLogic) CreateSelection(req types.CreateSelectionReq) error {
     	if err := checkCourseSelection(req); err != nil {
     		return err
@@ -589,7 +589,7 @@ func lengthAlert(hint string, length int) error {
 * 方法名: `EditSelection`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *EditSelectionLogic) EditSelection(req types.EditSelectionReq) error {
     	if err := checkCourseSelection(req.CreateSelectionReq); err != nil {
     		return err
@@ -635,7 +635,7 @@ func lengthAlert(hint string, length int) error {
 * 方法名: `DeleteSelection`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *DeleteSelectionLogic) DeleteSelection(req types.SelectionIdReq) error {
     	err := l.svcCtx.SelectionModel.Delete(req.Id)
     	switch err {
@@ -652,12 +652,12 @@ func lengthAlert(hint string, length int) error {
 ### 修改`selectioncoursemodel.go`  
 编辑`service/selection/model/selectioncoursemodel.go`添加`FindBySelectionId`、`FindByTeacherId`、`DeleteBySelectionId`方法
 
-```go
+``` go
 FindBySelectionId(selectionId int64) ([]*SelectionCourse, error)
 FindByTeacherId(teacherId int64) ([]*SelectionCourse, error)
 DeleteBySelectionId(selectionId int64) error
 ```
-```go
+``` go
 func (m *defaultSelectionCourseModel) FindBySelectionId(selectionId int64) ([]*SelectionCourse, error) {
 	query := fmt.Sprintf("select %s from %s where selection_id = ?", selectionCourseRows, m.table)
 	var resp []*SelectionCourse
@@ -698,7 +698,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名: `GetSelection`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *GetSelectionLogic) GetSelection(req types.SelectionIdReq) (*types.SelectionReply, error) {
     	list, err := l.svcCtx.SelectionCourseModel.FindBySelectionId(req.Id)
     	if err != nil {
@@ -772,12 +772,12 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名：FindBySelectionCourseId
 * interface代码内容：
 
-    ```go
+    ``` go
     FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error)
     ```
 * default实现代码内容：
 
-    ```go
+    ``` go
     func (m *defaultSelectionStudentModel) FindBySelectionCourseId(selectionCourseId int64) ([]*SelectionStudent, error) {
     	query := fmt.Sprintf("select %s from %s where selection_course_id = ?", selectionStudentRows, m.table)
     	var resp []*SelectionStudent
@@ -791,7 +791,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名: `DeleteSelection`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *DeleteSelectionLogic) DeleteSelection(req types.SelectionIdReq) error {
     	err := l.svcCtx.SelectionModel.Delete(req.Id)
     	switch err {
@@ -834,7 +834,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名: `AddCourse`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *AddCourseLogic) AddCourse(req types.SelectionAddCourseReq) error {
     	if req.SelectionId <= 0 {
     		return errorx.NewInvalidParameterError("selectionId")
@@ -943,7 +943,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名: `DeleteCourse`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *DeleteCourseLogic) DeleteCourse(req types.DeleteSelectionCourseReq) error {
     	selection, err := l.svcCtx.SelectionModel.FindOne(req.SelectionId)
     	switch err {
@@ -972,12 +972,12 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 文件位置：`service/selection/model/selectionstudentmodel.go`
 * 方法名称：添加`FindByStudentId`和`FindByStudentIdAndSelectionCourseId`
 * interface中代码：
-    ```go
+    ``` go
     FindByStudentId(studentId int64) ([]*SelectionStudent, error)
     FindByStudentIdAndSelectionCourseId(studentId, selectionCourseId int64) (*SelectionStudent, error)
     ```
 * default实现中代码
-    ```go
+    ``` go
     func (m *defaultSelectionStudentModel) FindByStudentId(studentId int64) ([]*SelectionStudent, error) {
         query := fmt.Sprintf("select %s from %s where student_id = ?", selectionStudentRows, m.table)
         var resp []*SelectionStudent
@@ -997,7 +997,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 文件位置： `service/selection/api/internal/handler/selecthandler.go`
 * 方法名：`selectHandler`
 代码内容：
-    ```go
+    ``` go
     func selectHandler(ctx *svc.ServiceContext) http.HandlerFunc {
     	return func(w http.ResponseWriter, r *http.Request) {
     		userId, ok := jwtx.GetUserId(w, r) // add
@@ -1027,7 +1027,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名: `Select`
 * 代码内容:
 
-    ```go
+    ``` go
     func (l *SelectLogic) Select(userId int64, req types.SelectCourseId) error {
     	if req.Id <= 0 {
     		return errorx.NewInvalidParameterError("id")
@@ -1182,7 +1182,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法：`MineSelections`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *MineSelectionsLogic) MineSelections(userId int64) (*types.MineCourseReply, error) {
     	studentSelectedCourseList, err := l.svcCtx.SelectionStudentModel.FindByStudentId(userId)
     	if err != nil {
@@ -1240,7 +1240,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名称：`getTeachingCoursesHandler`
 * 代码内容：
 
-    ```go
+    ``` go
     func getTeachingCoursesHandler(ctx *svc.ServiceContext) http.HandlerFunc {
     	return func(w http.ResponseWriter, r *http.Request) {
     		userId,ok:=jwtx.GetUserId(w,r)
@@ -1263,7 +1263,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 * 方法名称：`GetTeachingCourses`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *GetTeachingCoursesLogic) GetTeachingCourses(userId int64) (*types.MineCourseReply, error) {
     	selectCourseList, err := l.svcCtx.SelectionCourseModel.FindByTeacherId(userId)
     	if err != nil {
@@ -1312,25 +1312,25 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 
 ### 准备工作
 * 启动redis
-    ```shell script
+    ``` shell script
     $ redis-server
     ```
 * 启动etcd
-    ```shell script
+    ``` shell script
     $ etcd
     ```
 * 启动两个beanstalkd
-    ```shell script
+    ``` shell script
     $ beanstalkd -l 127.0.0.1 -p 11300
     ```
-    ```shell script
+    ``` shell script
     $ beanstalkd -l 127.0.0.1 -p 11301
     ```
 * 分别一次启动`user-api`、`user-rpc`、`course-api`、`course-rpc`、`selection-api`服务
 
 ### 接口验证
 * 管理员登录
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8888/api/user/login \
         -H 'content-type: application/json' \
@@ -1339,7 +1339,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
               "password":"111111"
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Content-Type: application/json
     Date: Wed, 16 Dec 2020 08:37:00 GMT
@@ -1350,7 +1350,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
   
 * 注册一位教师
 
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8888/api/user/register \
         -H 'content-type: application/json' \
@@ -1360,14 +1360,14 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
           "role":"teacher"
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Wed, 16 Dec 2020 08:35:04 GMT
     Content-Length: 0
     ```
 * 添加课程(课程模块)
     
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8889/api/course/add \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTE0MjAsImlhdCI6MTYwODEwNzgyMCwiaWQiOjJ9.SKMOrt22pCN2SE0qYiKkmmcJIyr3F0U7hn04pcZLmxQ' \
@@ -1383,7 +1383,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
       	"credit":2
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Wed, 16 Dec 2020 09:12:00 GMT
     Content-Length: 0
@@ -1393,7 +1393,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
 
 * 创建选课任务
     
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8890/api/selection/create \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTgzMjAsImlhdCI6MTYwODExNDcyMCwiaWQiOjJ9.aLhWGj7VfT2HHIW_dUFytQfJkEn055ANXgftArWM2ek' \
@@ -1407,7 +1407,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
       	"notification":"选课开始了"
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Wed, 16 Dec 2020 10:34:30 GMT
     Content-Length: 0
@@ -1415,7 +1415,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
   
 * 添加课程（选课）
 
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8890/api/selection/add/course/1 \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTgzMjAsImlhdCI6MTYwODExNDcyMCwiaWQiOjJ9.aLhWGj7VfT2HHIW_dUFytQfJkEn055ANXgftArWM2ek' \
@@ -1430,7 +1430,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
       	]
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 200 OK
     Date: Wed, 16 Dec 2020 10:39:33 GMT
     Content-Length: 0
@@ -1438,7 +1438,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
   
 * 选课
 
-    ```shell script
+    ``` shell script
     $ curl -i -X POST \
         http://127.0.0.1:8890/api/selection/select/1 \
         -H 'authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDgxMTg4NTcsImlhdCI6MTYwODExNTI1NywiaWQiOjF9.jcuMpRw3S5rEu97X3JpD6xmZrdYiwDwIi_d_FScvl5k' \
@@ -1453,7 +1453,7 @@ func (m *defaultSelectionCourseModel) DeleteBySelectionId(selectionId int64) err
       	]
       }'
     ```
-    ```text
+    ``` text
     HTTP/1.1 400 Bad Request
     Content-Type: text/plain; charset=utf-8
     X-Content-Type-Options: nosniff

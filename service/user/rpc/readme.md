@@ -4,7 +4,7 @@ user rpc 用于给其他服务根据其需要提供服务能力，如查询用�
 # 创建rpc目录
 在`service/user`下创建rpc目录，得到目录树
 
-```text
+``` text
 user
 └── rpc
 ```
@@ -15,7 +15,7 @@ user
 # 定义proto
 我们修改proto文件内容如下:
 
-```protobuf
+``` protobuf
 syntax = "proto3";
 
 package user;
@@ -64,10 +64,10 @@ service UserService {
 # 生成rpc服务
 在`service/user/rpc/user.proto`文件上右键->`Open in Terminal`进入idea终端。
 
-```shell script
+``` shell script
 $  goctl rpc proto -src user.proto -dir .
 ```
-```text
+``` text
 protoc  -I=/Users/xxx/goland/go/hey-go-zero/service/user/rpc user.proto --go_out=plugins=grpc:/Users/xxx/goland/go/hey-go-zero/service/user/rpc/user
 Done.
 ```
@@ -75,11 +75,11 @@ Done.
 > 说明：执行goctl命令时会输出protoc真正执行的命令内容，其中`xxx`为当前计算机user名称。
 
 我们进入`service/user/rpc`目录看一下生成后的目录树：
-```shell script
+``` shell script
 $ tree
 ```
 
-```text
+``` text
 user/rpc
 ├── etc
 │   └── user.yaml
@@ -107,7 +107,7 @@ user/rpc
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/user/rpc/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -146,7 +146,7 @@ user/rpc
 # ServiceContext增加`UserModel`资源
 打开`service/user/rpc/internal/svc/servicecontext.go`，添加`UserModel`依赖。
 
-```go
+``` go
 package svc
 
 import (
@@ -176,7 +176,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 由于我们不同的方法都是有不同的struct包裹，因此不同logic需要实现共同逻辑时不太灵活，我们这里用一个`静态`型的通用文件去实现这些共同逻辑，然后不同的logic中去访问。
 * 在`service/user/rpc/internal/logic`目录中创建`common.go`添加`convertUserFromDbToPb`方法，填充代码：
 
-    ```go
+    ``` go
     func convertUserFromDbToPb(in *model.User) *user.UserReply {
     	var resp user.UserReply
     	resp.Id = in.Id
@@ -194,7 +194,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 * 方法：`FindOne`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *FindOneLogic) FindOne(in *user.UserReq) (*user.UserReply, error) {
     	data, err := l.svcCtx.UserModel.FindOne(in.Id)
     	switch err {
@@ -212,12 +212,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 首先我们需要在`service/user/model/usermodel.go`中添加`FindByIds`方法
 * 在interface中添加`FindByIds`方法
 
-    ```go
+    ``` go
     FindByIds(ids []int64) ([]*User, error)
     ```
 * 在default`实现`中添加`FindByIds`方法
 
-    ```go
+    ``` go
     func (m *defaultUserModel) FindByIds(ids []int64) ([]*User, error) {
     	query, args, err := builder.Select(userRows).From(m.table).Where(builder.Eq{"id": ids}).ToSQL()
     	if err != nil {
@@ -234,7 +234,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 * 方法：`FindByIds`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *FindByIdsLogic) FindByIds(in *user.IdsReq) (*user.UserListReply, error) {
     	var resp user.UserListReply
     	fx.From(func(source chan<- interface{}) {

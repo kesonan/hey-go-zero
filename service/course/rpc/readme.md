@@ -4,7 +4,7 @@ user rpc 用于给其他服务根据其需要提供服务能力，如查询课�
  创建rpc目录
 在`service/course`下创建rpc目录，得到目录树
 
-```text
+``` text
 course
 └── rpc
 ```
@@ -15,7 +15,7 @@ course
 # 定义proto
 我们修改proto文件内容如下:
 
-```protobuf
+``` protobuf
 syntax = "proto3";
 
 package course;
@@ -65,10 +65,10 @@ service CourseService{
 # 生成rpc服务
 在`service/course/rpc/course.proto`文件上右键->`Open in Terminal`进入idea终端。
 
-```shell script
+``` shell script
 $  goctl rpc proto -src course.proto -dir .
 ```
-```text
+``` text
 protoc  -I=/Users/xxx/goland/go/hey-go-zero/service/course/rpc course.proto --go_out=plugins=grpc:/Users/xxx/goland/go/hey-go-zero/service/course/rpc/course
 Done.
 ```
@@ -76,10 +76,10 @@ Done.
 > 说明：执行goctl命令时会输出protoc真正执行的命令内容，其中`xxx`为当前计算机user名称。
 
 我们进入`service/course/rpc`目录看一下生成后的目录树：
-```shell script
+``` shell script
 $ tree
 ```
-```text
+``` text
 course/rpc
 ├── course
 │   └── course.pb.go
@@ -107,7 +107,7 @@ course/rpc
 # 添加`Mysql`和`CacheRedis`配置定义和yaml配置项
 * 编打开`service/course/rpc/internal/config/config.go`，添加`Mysql`、`CacheRedis`定义
 
-    ```go
+    ``` go
     package config
     
     import (
@@ -126,7 +126,7 @@ course/rpc
   
 * 打开`service/course/rpc/etc/course.yaml`文件，添加`Mysql`、`CacheRedis`配置项
 
-    ```yaml
+    ``` yaml
     Name: course.rpc
     ListenOn: 127.0.0.1:8081
     Etcd:
@@ -146,7 +146,7 @@ course/rpc
 # ServiceContext增加`CourseModel`资源
 打开`service/course/rpc/internal/svc/servicecontext.go`，添加`CourseModel`依赖。
 
-```go
+``` go
 package svc
 
 import (
@@ -176,7 +176,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 由于我们不同的方法都是有不同的struct包裹，因此不同logic需要实现共同逻辑时不太灵活，我们这里用一个`静态`型的通用文件去实现这些共同逻辑，然后不同的logic中去访问。
 * 在`service/course/rpc/internal/logic`目录中创建`common.go`并添加`convertCourseFromDbToPb`方法，填充代码：
 
-    ```go
+    ``` go
     func convertCourseFromDbToPb(in *model.Course) *course.Course {
     	var resp course.Course
     	resp.Id = in.Id
@@ -196,7 +196,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 * 方法： `FindOne`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *FindOneLogic) FindOne(in *course.IdReq) (*course.Course, error) {
     	data, err := l.svcCtx.CourseModel.FindOne(in.Id)
     	switch err {
@@ -215,12 +215,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 首先我们需要在`service/course/model/coursemodel.go`中添加`FindByIds`方法
 * 在interface中添加`FindByIds`方法
 
-    ```go
+    ``` go
     FindByIds(ids []int64) ([]*Course, error)
     ```
 * 在default`实现`中添加`FindByIds`方法
 
-    ```go
+    ``` go
     func (m *defaultCourseModel) FindByIds(ids []int64) ([]*Course, error) {
     	query, args, err := builder.Select(courseRows).From(m.table).Where(builder.Eq{"id": ids}).ToSQL()
     	if err != nil {
@@ -237,7 +237,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 * 方法： `FindByIds`
 * 代码内容：
 
-    ```go
+    ``` go
     func (l *FindByIdsLogic) FindByIds(in *course.IdsReq) (*course.CourseListReply, error) {
     	var resp course.CourseListReply
     	fx.From(func(source chan<- interface{}) {
