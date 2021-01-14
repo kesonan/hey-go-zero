@@ -13,3 +13,6 @@
 
 # 结构图
 ![course-structure](../../resource/course-structure.svg)
+
+# 猜你想
+* [《目录说明》](../index.md)

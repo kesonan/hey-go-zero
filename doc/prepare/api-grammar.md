@@ -95,3 +95,7 @@ api语法详见[api语法描述](https://github.com/tal-tech/go-zero/blob/master
 上一篇 [《服务目录》](./service-structure.md)
 
 下一篇 [《Proto使用说明》](./proto-rule.md)
+
+# 猜你想
+
+* [《目录说明》](../index.md)

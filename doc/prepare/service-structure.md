@@ -153,3 +153,7 @@ model
 上一篇 [《Goctl介绍》](./goctl-intro.md)
 
 下一篇 [《Api语法介绍》](./api-grammar.md)
+
+# 猜你想
+
+* [《目录说明》](../index.md)

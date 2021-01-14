@@ -27,7 +27,10 @@
     * 删除课程
     * 查询课程
 
-# 隧道
+# 猜你想
 * [课程模块目录](../../service/course)
     * [课程模块api说明文档](../../service/course/api/readme.md)
     * [课程模块rpc说明文档](../../service/course/rpc/readme.md)
+* [《目录说明》](../index.md)
+
+

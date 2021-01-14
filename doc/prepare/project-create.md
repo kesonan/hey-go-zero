@@ -36,3 +36,7 @@ hey-go-zero
 上一篇 [《Proto使用说明》](./proto-rule.md)
 
 下一篇 [《数据库准备工作》](./db-create.md)
+
+# 猜你想
+
+* [《目录说明》](../index.md)

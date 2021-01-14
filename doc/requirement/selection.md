@@ -32,6 +32,7 @@
 # 选课流程
 ![selection](../../resource/selection-flow.svg)
 
-# 隧道
+# 猜你想
 * [选课模块目录](../../service/selection)
     * [选课模块api说明文档](../../service/selection/api/readme.md)
+* [《目录说明》](../index.md)

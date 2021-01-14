@@ -22,3 +22,7 @@ Goctl是基于[go-zero](https://github.com/tal-tech/go-zero) 项目的一款微�
 上一篇 [《准备工作》](prepare.md)
 
 下一篇 [《服务目录》](./service-structure.md)
+
+# 猜你想
+
+* [《目录说明》](../index.md)

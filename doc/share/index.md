@@ -29,4 +29,4 @@
 * Golang垃圾回收机制理解心得
 
 # 开发者须知
-如果在文章被合并到master后，项目发起人有权在项目[hey-go-zero](https://github.com/songmeizi/hey-go-zero) 内部引用该文章。
+如果在文章被合并到master后，项目发起人有权在项目[hey-go-zero](https://github.com/anqiansong/hey-go-zero) 内部引用该文章。

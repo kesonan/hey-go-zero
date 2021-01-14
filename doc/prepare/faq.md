@@ -12,7 +12,7 @@
 > * `good idea`好的建议
 
 # 怎么贡献`hey-go-zero`？
-你可以fork [hey-go-zero](https://github.com/songmeizi/hey-go-zero) 然后修复或者添加新内容后进行pull request，
+你可以fork [hey-go-zero](https://github.com/anqiansong/hey-go-zero) 然后修复或者添加新内容后进行pull request，
 我们会认真阅读你的pull request并在内部团队达成一致后进行merge，这个过程也许会比较漫长，请你保持耐心，不管任何结果我们都会给到你反馈。
 
 > 说明: 提交pull request建议对本次提交进行一个简要概括，这样可以方便我们快速了解你的想法。
@@ -106,3 +106,7 @@ goctl model mysql datasource -url="" -table="*" -dir ./snake -style GoZero
 上一篇 [《数据库准备工作》](./db-create.md)
 
 下一篇 [《需求说明》](../requirement/summary.md)
+
+# 猜你想
+
+* [《目录说明》](../index.md)
