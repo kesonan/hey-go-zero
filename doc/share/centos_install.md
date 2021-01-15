@@ -96,29 +96,6 @@
 
 > 这里为了操作美感，在启动虚拟机后通过在iTerm2中利用ssh链接到centOS后进行后续操作。
 
-## 查看master ip
-
-进入centOS
-
-``` shell
-$ ip addr
-```
-
-``` text
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether 00:50:56:3f:71:76 brd ff:ff:ff:ff:ff:ff
-    inet 172.16.100.131/24 brd 172.16.100.255 scope global noprefixroute dynamic ens33
-       valid_lft 1684sec preferred_lft 1684sec
-    inet6 fe80::550a:cecb:f8ab:86fc/64 scope link noprefixroute
-       valid_lft forever preferred_lft forever
-```
-
 ## 登录ssh
 > ## 温馨提示
 > 为了快速安装，如果你也是在mac上使用iTerm2，可以开始3个tab用来分别连接到三台虚拟机上，然后通过command+shift+i来同时输入命令。
