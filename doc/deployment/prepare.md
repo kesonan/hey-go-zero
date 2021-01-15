@@ -7,14 +7,14 @@
 
 # 准备工作
 * 虚拟机安装
-  > 虚拟机安装这里就不做详细描述了，推荐安装VMware Fusion
+  * 虚拟机安装这里就不做详细描述了，推荐安装VMware Fusion
 * [centOS安装](../share/centos_install.md)
 * [简单的k8s集群安装](../share/k8s_install.md)
 
 
 # End
 
-下一篇 [《Proto使用说明》](./proto-rule.md)
+下一篇 [《服务部署》](./deployment.md)
 
 # 猜你想
 
