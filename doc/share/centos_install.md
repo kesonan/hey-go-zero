@@ -22,6 +22,14 @@
   ![完成](../../resource/centos_04.png)
 * 完成保存为`master`
 
+## 虚拟机设置
+
+> 为了保证后续k8s稳定安装，需要设置一下虚拟机配置，设置处理器为2核+，内存为2048MB+
+
+![虚拟机设置](../../resource/vm_setting.png)
+![虚拟机设置](../../resource/vm_cpu.png)
+![虚拟机设置](../../resource/vm_cpu_mem.png)
+
 ## 设置静态ip
 * 分别在进入虚拟机设置，并对`网络适配器`进行设置，点击`高级选项`，生成MAC地址，要确保三个虚拟机的MAC地址不能一样，记住每个虚拟机名称对应的mac地址。
   ![网络适配器](../../resource/vm_net.png)
@@ -33,21 +41,21 @@
   ``` shell
   $ sudo vi /Library/Preferences/VMware\ Fusion/vmnet8/dhcpd.conf
   ```
-* 指定master的ip为172.16.100.131，node1的ip为172.16.100.132，node2的ip为172.16.100.133,在文末填充如下内容后，保存。
+* 指定master的ip为172.16.100.131，node1的ip为172.16.100.132，node2的ip为172.16.100.133,在文末填充如下内容后，保存后`重新启动VMware Fusion`。
   ``` text
   host master{
           hardware ethernet 00:50:56:3F:71:76;
-          fixed-address 172.16.100.135;
+          fixed-address 172.16.100.131;
   }
   
   host node1{
           hardware ethernet 00:50:56:3B:B7:98;
-          fixed-address 172.16.100.136;
+          fixed-address 172.16.100.132;
   }
   
   host node2{
           hardware ethernet 00:50:56:2F:70:48;
-          fixed-address 172.16.100.137;
+          fixed-address 172.16.100.133;
   }
   ```
   
@@ -61,15 +69,16 @@
 
 ## 安装
 
-* 启动`master`虚拟机，进入centOS启动页
+* 分别启动`master`、`node1`、`node2`虚拟机，进入centOS启动页
   ![centOS启动页](../../resource/centos_home.png)
 * 通过上下键移动，选择`Install CentOS 7`，回车
   ![centOS初始化](../../resource/centos_init.png)
 * 选择语言`中文`后`继续`
   ![centOS选择语言](../../resource/centos_language.png)
+* 安装位置，我们选择`自动分区`就行了
 * 网络设置
   ![centOS网络设置](../../resource/centos_network.png)
-* 选择`打开`网络，并修改`主机`名称为`master`，点击`应用`，最后点击`完成`
+* 选择`打开`网络，并分别修改`主机`名称为`master`、`node1`、`node2`，点击`应用`，最后点击`完成`
   ![centOS网络设置](../../resource/centos_network_on.png)
 * 点击`开始安装`
   ![centOS开始安装](../../resource/centos_install_start.png)
@@ -103,21 +112,24 @@ $ ip addr
     inet6 ::1/128 scope host
        valid_lft forever preferred_lft forever
 2: ens33: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether 00:0c:29:77:a8:e7 brd ff:ff:ff:ff:ff:ff
-    inet 172.16.100.135/24 brd 172.16.100.255 scope global noprefixroute dynamic ens33
-       valid_lft 1347sec preferred_lft 1347sec
-    inet6 fe80::9b9b:e5b8:8941:5a6f/64 scope link noprefixroute
+    link/ether 00:50:56:3f:71:76 brd ff:ff:ff:ff:ff:ff
+    inet 172.16.100.131/24 brd 172.16.100.255 scope global noprefixroute dynamic ens33
+       valid_lft 1684sec preferred_lft 1684sec
+    inet6 fe80::550a:cecb:f8ab:86fc/64 scope link noprefixroute
        valid_lft forever preferred_lft forever
 ```
 
 ## 登录ssh
+> ## 温馨提示
+> 为了快速安装，如果你也是在mac上使用iTerm2，可以开始3个tab用来分别连接到三台虚拟机上，然后通过command+shift+i来同时输入命令。
+![多窗口命令同步](../../resource/muti_tab.png)
 
 ``` shell
-$ ssh root@172.16.100.135 -p 22
+$ ssh root@172.16.100.131 -p 22
 ```
 
 ``` text
-The authenticity of host '172.16.100.135 (172.16.100.135)' can't be established.
+The authenticity of host '172.16.100.131 (172.16.100.131)' can't be established.
 ECDSA key fingerprint is SHA256:sv99JzCzhchM0zKNnS3RNMgJbqCbE0nLRDXXdEQiuBE.
 Are you sure you want to continue connecting (yes/no)? 
 ```
@@ -133,6 +145,12 @@ Warning: Permanently added '172.16.100.135' (ECDSA) to the list of known hosts.
 root@172.16.100.135's password:
 Last login: Thu Jan 14 21:58:25 2021
 ```
+
+## 安装vim
+``` shell
+$ yum -y install vim
+```
+![安装vim](../../resource/install_vim.png)
 
 ## 安装wget
 
@@ -155,6 +173,7 @@ $ mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.bak
 ``` shell
 wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 ```
+![备份repo](../../resource/backup_repo.png)
 
 * 清除和生成缓存
 
@@ -165,15 +184,15 @@ $ yum clean all
 ``` shell
 $ yum makecache
 ```
+![yum元数据缓存](../../resource/yum_makecache.png)
 
 ## 关闭防火墙
-
-> 关闭防火墙和selinux是为了后续顺利安装k8s做准备。
 
 ``` shell
 $ systemctl stop firewalld.service
 $ systemctl disable firewalld.service
 ```
+![关闭防火墙](../../resource/firewalld.png)
 
 ## 关闭selinux
 
@@ -184,24 +203,22 @@ $ setenforce 0
 ```
 
 * 永久关闭
-
+G
 ``` shell
-$ vi /etc/selinux/config
+$ vim /etc/selinux/config
 ```
 
-设置SELINUX=disabled
+将SELINUX=enforcing改为`disabled`
+![关闭selinux](../../resource/selinux_disabled.png)
 
-# 虚拟机设置
+> ## 温馨提示
+> 关闭防火墙和selinux是为了后续顺利安装k8s做准备。
 
-> 为了保证后续k8s稳定安装，需要设置一下虚拟机配置，设置处理器为2核+，内存为2048MB+
+# 结尾
+至此，centOS准备工作已经结束
 
-![虚拟机设置](../../resource/vm_setting.png)
-![虚拟机设置](../../resource/vm_cpu.png)
-![虚拟机设置](../../resource/vm_cpu_mem.png)
-
-
-
-
+# 猜你想看
+* [k8s集群安装](./k8s_install.md)
 
 ## 参考链接
 
