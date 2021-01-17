@@ -38,18 +38,18 @@ $ yum install -y docker-ce-${version} docker-ce-cli-${version} containerd.io
 > ${version}为具体版本号
 
 ## 启动Docker
-```shell
+``` shell
 $ systemctl start docker
 $ systemctl enable docker
 ```
 
 ## 命令不全
-```shell
+``` shell
 $ yum -y install bash-completion
 ```
 ![bash-completion](../../resource/bash-completion.png)
 
-```shell
+``` shell
 $ source /etc/profile.d/bash_completion.sh
 ```
 
@@ -59,7 +59,7 @@ $ source /etc/profile.d/bash_completion.sh
 * 登陆地址为：https://cr.console.aliyun.com ,未注册的可以先注册阿里云账户
 ![mirror](../../resource/mirror.png)
   
-```shell
+``` shell
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json <<-'EOF'
 {
@@ -72,7 +72,7 @@ sudo systemctl restart docker
 > ${mirrors}为你阿里云具体加速镜像地址
 
 ## 配置daemon.json文件
-```shell
+``` shell
 $ mkdir -p /etc/docker
 $ tee /etc/docker/daemon.json <<-'EOF'
 {
@@ -80,23 +80,23 @@ $ tee /etc/docker/daemon.json <<-'EOF'
 }
 EOF
 ```
-```text
+``` text
 {
   "registry-mirrors": ["https://v16stybc.mirror.aliyuncs.com"]
 }
 ```
 
 ## 重启服务
-```shell
+``` shell
 $ systemctl daemon-reload
 $ systemctl restart docker
 ```
 
 ## 查看Docker版本验证安装是否成功
-```shell
+``` shell
 $ docker --version
 ```
-```text
+``` text
 Docker version 20.10.2, build 2291f61
 ```
 
@@ -106,19 +106,19 @@ Docker version 20.10.2, build 2291f61
 
 ## 配置主机名
 先查看每个虚拟机对应的hostname是否分别为master、node1、node2
-```shell
+``` shell
 $ more /etc/hostname
 ```
 ![hostname](../../resource/hostname.png)
 
 如果hostname不对的话，可以通过一下方式修改
-```shell
+``` shell
 $ hostnamectl set-hostname ${hostname}
 ```
 > ${hostname}为主机名称
 
 ## 修改hosts
-```shell
+``` shell
 $ cat >> /etc/hosts << EOF
 172.16.100.131	master
 172.16.100.132	node1
@@ -127,7 +127,7 @@ EOF
 ```
 
 ## 验证mac地址uuid
-```shell
+``` shell
 $ cat /sys/class/net/ens33/address
 $  cat /sys/class/dmi/id/product_uuid
 ```
@@ -135,25 +135,25 @@ $  cat /sys/class/dmi/id/product_uuid
 
 ## 禁用swap
 * 临时禁用
-    ```shell
+    ``` shell
     $ swapoff -a
     ```
 * 永久禁用
   
   若需要重启后也生效，在禁用swap后还需修改配置文件/etc/fstab，注释swap
-    ```shell
+    ``` shell
     $ vim /etc/fstab
     ```
     ![swap](../../resource/swap.png)
 
 ## 内核参数修改
 * 临时修改
-```shell
+``` shell
 $ sysctl net.bridge.bridge-nf-call-iptables=1
 $ sysctl net.bridge.bridge-nf-call-ip6tables=1
 ```
 * 永久修改
-```shell
+``` shell
 $ cat <<EOF >  /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
@@ -162,7 +162,7 @@ EOF
 
 ## 修改Cgroup Driver
 修改daemon.json，新增‘"exec-opts": ["native.cgroupdriver=systemd"’
-```shell
+``` shell
 $ vim /etc/docker/daemon.json 
 ```
 ![cgroup](../../resource/cgroup.png)
@@ -171,13 +171,13 @@ $ vim /etc/docker/daemon.json
 [WARNING IsDockerSystemdCheck]: detected "cgroupfs" as the Docker cgroup driver. The recommended driver is "systemd". Please follow the guide at https://kubernetes.io/docs/setup/cri/
 
 ## 重新加载docker
-```shell
+``` shell
 $ systemctl daemon-reload
 $ systemctl restart docker
 ```
 
 ## 设置k8s源
-```shell
+``` shell
 $ cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -198,7 +198,7 @@ EOF
 > * gpgkey=URL 数字签名的公钥文件所在位置，如果gpgcheck值为1，此处就需要指定gpgkey文件的位置，如果gpgcheck值为0就不需要此项了
 
 ## 更新缓存
-```shell
+``` shell
 $ yum clean all
 $ yum -y makecache
 ```
@@ -207,42 +207,42 @@ $ yum -y makecache
 # 3、节点安装
 
 ## 安装最新版本kubelet、kubeadm和kubectl
-```shell
+``` shell
 $ yum install -y kubelet kubeadm kubectl
 ```
 
 你也可以安装指定版本
-```shell
+``` shell
 $ yum install -y kubelet-${version} kubeadm-${version} kubectl-${version}
 ```
 > ${version}为k8s版本
 
 ## 启动kubelet并设置开机启动
-```shell
+``` shell
 $ systemctl enable kubelet && systemctl start kubelet
 ```
 
 ## kubelet命令补全
-```shell
+``` shell
 $ echo "source <(kubectl completion bash)" >> ~/.bash_profile
 $ source ~/.bash_profile 
 ```
 ## 下载镜像
 查看一下kubectl版本
-```shell
+``` shell
 $ kubectl version
 ```
-```text
+``` text
 Client Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.2", GitCommit:"faecb196815e248d3ecfb03c680a4507229c2a56", GitTreeState:"clean", BuildDate:"2021-01-13T13:28:09Z", GoVersion:"go1.15.5", Compiler:"gc", Platform:"linux/amd64"}
 The connection to the server localhost:8080 was refused - did you specify the right host or port?
 ```
 > 由kubctl版本可得知安装的版本为1.20.2
 
-```shell
+``` shell
 $ vim ~/image.sh
 ```
 输入如下内容
-```text
+``` text
 #!/bin/bash
 url=registry.cn-hangzhou.aliyuncs.com/google_containers
 version=v1.20.2
@@ -256,7 +256,7 @@ done
 > 其中version值要与kubectl、kubeadm、kubelet版本一致
 
 ## 下载images
-```shell
+``` shell
 $ cd ~
 $ chmod +x image.sh
 $ ./image.sh
@@ -264,10 +264,10 @@ $ ./image.sh
 ![imamge](../../resource/image.png)
 
 ## 查看images验证一下
-```text
+``` shell
 $ dokcer images
 ```
-```text
+``` text
 REPOSITORY                           TAG        IMAGE ID       CREATED         SIZE
 k8s.gcr.io/kube-proxy                v1.20.2    43154ddb57a8   3 days ago      118MB
 k8s.gcr.io/kube-apiserver            v1.20.2    a8c2fdb8bf76   3 days ago      122MB
@@ -280,29 +280,29 @@ k8s.gcr.io/pause                     3.2        80d28bedfe5d   11 months ago   6
 
 # 4、master节点安装
 ## 初始化
-```shell
+``` shell
 $ kubeadm init --apiserver-advertise-address 172.16.100.131 --pod-network-cidr=10.244.0.0/16
 ```
 ![kubeadmjoin](../../resource/kubeadmjoin.png)
 > 记录kubeadm join的输出，后面需要这个命令将各个节点加入集群中。
 
 ## 加载环境变量
-```shell
+``` shell
 $ echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
 $ source ~/.bash_profile 
 ```
 本文所有操作都在root用户下执行，若为非root用户，则执行如下操作：
-```shell
-mkdir -p $HOME/.kube
+``` shell
+$ mkdir -p $HOME/.kube
 cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
 ## 安装pod网络
-```shell
- kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+``` shell
+$ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ```
-```text
+``` text
 podsecuritypolicy.policy/psp.flannel.unprivileged created
 clusterrole.rbac.authorization.k8s.io/flannel created
 clusterrolebinding.rbac.authorization.k8s.io/flannel created
@@ -313,20 +313,20 @@ daemonset.apps/kube-flannel-ds created
 
 ## master节点配置
 * 删除默认污点：
-```shell
+``` shell
 $ kubectl taint nodes master node-role.kubernetes.io/master-
 ```
-```text
+``` text
 node/master untainted
 ```
 
 # 5、Node节点安装
 ## 加入集群
-```shell
+``` shell
 $ kubeadm join 172.16.100.131:6443 --token y9or2y.qbo23fmn9jq6sui4 \
     --discovery-token-ca-cert-hash sha256:73ad141e9508dbbde2f2f8f3cb01212db2d928a98eb26192b8a76956651afb13
 ```
-```text
+``` text
 [preflight] Running pre-flight checks
 	[WARNING SystemVerification]: this Docker version is not on the list of validated versions: 20.10.2. Latest validated version: 19.03
 [preflight] Reading configuration from the cluster...
@@ -345,21 +345,21 @@ Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 > 如果以上token过期，在`master`节点上请用如下方式重新获取
 
 ## 生成新的令牌
-```shell
-kubeadm token create
+``` shell
+$ kubeadm token create
 ```
 
 ## 生成新的加密串
-```shell
-openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | \
+``` shell
+$ openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | \
    openssl dgst -sha256 -hex | sed 's/^.* //'
 ```
 
 # 6、验证集群
-```shell
+``` shell
 $ kubectl get nodes
 ```
-```text
+``` text
 NAME     STATUS     ROLES                  AGE     VERSION
 master   Ready   control-plane,master   7m52s   v1.20.2
 node1    Ready   <none>                 3m      v1.20.2
