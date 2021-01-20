@@ -87,19 +87,19 @@ rpm --import https://jenkins-ci.org/redhat/jenkins-ci.org.key
 yum install jenkins --nogpgcheck
 ```
 
+> ## 温馨提示
+> 其中第二个命令会比较耗时，最好直接访问`https://jenkins-ci.org/redhat/jenkins-ci.org.key`下载后上传到centOS服务器后操作。
+
 ## 配置端口
 端口默认为8080，可以通过以前方法修改端口
 ``` shell
 $ vi /etc/sysconfig/jenkins
 ```
 
-> ## 温馨提示
-> 其中第二个命令会比较耗时，最好直接访问`https://jenkins-ci.org/redhat/jenkins-ci.org.key`下载后上传到centOS服务器后操作。
-
 # 启动jenkins
 启动jenkins
 ``` shell
-$ systemctl start jenkins
+$ service jenkins start
 ```
 ``` text
 Starting jenkins (via systemctl):                          [  确定  ]
@@ -111,6 +111,8 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 ```
 
 ![jenkins-welcome](../../resource/jenkins_welcome.png)
+安装推荐的插件
 ![jenkins-welcome](../../resource/jenkins_plugin_install.png)
+![jenkins-welcome](../../resource/jenkins_url.png)
 ![jenkins-welcome](../../resource/jenkins.png)
 

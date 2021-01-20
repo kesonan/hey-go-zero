@@ -12,6 +12,8 @@
 * [简单的k8s集群安装](../share/k8s_install.md)
 * [jenkins安装](../share/jenkins-install.md)
 
+> ## 温馨提示
+> 由于后续我们利用jenkins来部署服务到k8s，请将jenkins安装在k8s的某一个节点上。
 
 # End
 
