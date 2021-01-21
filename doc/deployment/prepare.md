@@ -10,6 +10,7 @@
   * 虚拟机安装这里就不做详细描述了，推荐安装VMware Fusion
 * [centOS安装](../share/centos_install.md)
 * [简单的k8s集群安装](../share/k8s_install.md)
+* [gitlab安装](../share/gitlab.md)
 * [jenkins安装](../share/jenkins-install.md)
 
 > ## 温馨提示
