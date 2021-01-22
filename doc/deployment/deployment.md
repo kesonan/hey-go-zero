@@ -4,6 +4,15 @@
 
 详情见[准备工作](./prepare.md)
 
+# goctl
+在`jenkins`所在机器上安装`goctl`
+```shell
+$ goctl -v
+```
+```text
+goctl version 1.1.4 linux/amd64
+```
+
 # gitlab
 
 ## 添加SSH Key
@@ -62,13 +71,12 @@ $ cat id_rsa
 * 获取凭据id 进入凭据页面，找到Username为`gitlab`的凭据id
   ![jenkins-credentials-id](../../resource/jenkins-credentials-id.png)
 
-* 进入jenkins首页，点击`新建Item`，名称为`user-service`
+* 进入jenkins首页，点击`新建Item`，名称为`user`
   ![jenkins-add-item](../../resource/jenkins-new-item.png)
-  ![jenkins-user-pipeline](../../resource/user-pipeline.png)
 
 * 查看项目git地址
 ![gitlab-git-url](../../resource/gitlab-git-url.png)
 
-* 配置`user-serivce`
-  在`user-service`配置页面，向下滑动找到`Pipeline script`
+* 配置`user`
+  在`user`配置页面，向下滑动找到`Pipeline script`
   ![user-pipepine-script](../../resource/user-pipeline-script.png)
