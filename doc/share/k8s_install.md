@@ -298,6 +298,9 @@ cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
+> ## 温馨提示
+> /etc/kubernetes/admin.conf需要从master节点拷贝一份到各个node节点
+
 ## 安装pod网络
 ``` shell
 $ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
