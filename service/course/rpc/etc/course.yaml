@@ -1,12 +1,12 @@
 Name: course.rpc
-ListenOn: 127.0.0.1:8081
+ListenOn: 0.0.0.0:1003
 Etcd:
   Hosts:
-  - 127.0.0.1:2379
+  - 172.16.100.135:2379
   Key: course.rpc
 Mysql:
-  DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+  DataSource: ugozero:Qq111111..@tcp(172.16.100.135:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 CacheRedis:
   -
-    Host: 127.0.0.1:6379
+    Host: 172.16.100.135:6379
     Type: node

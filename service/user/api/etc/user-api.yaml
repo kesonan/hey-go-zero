@@ -1,12 +1,12 @@
 Name: user-api
 Host: 0.0.0.0
-Port: 8888
+Port: 1000
 Auth:
   AccessSecret: 1e69481b-7405-4369-9ce3-9aaffdb56ce3
   AccessExpire: 3600
 Mysql:
-  DataSource: ugozero@tcp(127.0.0.1:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
+  DataSource: ugozero:Qq111111..@tcp(172.16.100.135:3306)/heygozero?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai
 CacheRedis:
   -
-    Host: 127.0.0.1:6379
+    Host: 172.16.100.135:6379
     Type: node

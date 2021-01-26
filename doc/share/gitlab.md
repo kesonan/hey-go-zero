@@ -2,7 +2,11 @@
 
 # 准备工作
 * centOS 7
+* 设置固定ip
 
+# 设置固定ip
+虚拟机固定ip设置这里就不重复了，参考[centOS安装知设置静态ip](./centos_install.md)
+本次演示设置固定ip为`172.16.100.134`
 
 # 安装curl
 ``` shell

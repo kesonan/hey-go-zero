@@ -4,10 +4,10 @@ Log:
 Dq:
   Beanstalks:
     -
-      Endpoint: 127.0.0.1:11300
+      Endpoint: 172.16.100.135:11300
       Tube: course_select
-    - Endpoint: 127.0.0.1:11301
+    - Endpoint: 172.16.100.135:11301
       Tube: course_select
   Redis:
-    Host: 127.0.0.1:6379
+    Host: 172.16.100.135:6379
     Type: node

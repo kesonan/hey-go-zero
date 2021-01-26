@@ -4,6 +4,8 @@
 
 详情见[准备工作](./prepare.md)
 
+# etcd&redis&mysql
+
 # goctl
 在`jenkins`所在机器上安装`goctl`
 ```shell
