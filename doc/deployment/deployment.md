@@ -197,11 +197,12 @@ $ cat id_rsa
 # 查看pipeline
 ![build with parameters](../../resource/jenkins-build-with-parameters.png)
 ![build with parameters](../../resource/pipeline.png)
+
+
+# 查看k8s服务
 ![build with parameters](../../resource/k8s-01.png)
 ![build with parameters](../../resource/k8s-02.png)
 ![build with parameters](../../resource/k8s-03.png)
-
-# 查看k8s服务
 
 # 温馨提示
 本文档仅仅是为了演示简单的部署流程，不能实际用于生产环境，本次演示中，请忽略一些应用安装规划不合理的地方，如：jenkins本身暂用内存资源比较大，应该尽量单独部署在一台服务器等。
