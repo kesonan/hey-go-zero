@@ -1,4 +1,4 @@
-# Redis&Mysql安装
+# Redis&Mysql&Nginx&Etcd安装
 
 为了演示，因此将三个应用安装在同一台centOS虚拟机上。
 
@@ -232,6 +232,8 @@ pid-file=/var/run/mysqld/mysqld.pid
 保存，重启`service mysqld restart`。
 
 # nginx安装
+原文：[CentOS7安装Nginx](https://www.cnblogs.com/boonya/p/7907999.html)
+
 ```shell
 $ yum install gcc-c++
 $ yum install -y pcre pcre-devel
@@ -295,4 +297,74 @@ $ systemctl stop nginx.service
 重启nginx
 ```shell
 $ systemctl restart nginx.service
+```
+
+# Etcd安装
+
+原文：[CentOS 7 单节点安装etcd](https://blog.csdn.net/sealir/article/details/80758960)
+
+进入`  https://github.com/coreos/etcd/releases` 下载etcd包，将包解压后
+的`etcd`、`etcdctl`移动到/usr/bin目录下
+```shell
+$ wget https://github.com/etcd-io/etcd/releases/download/v3.4.14/etcd-v3.4.14-linux-amd64.tar.gz
+$ tar -zxvf etcd-v3.4.14-linux-amd64.tar.gz
+$ cd etcd-v3.4.14-linux-amd64.tar.gz
+$ mv etcd /usr/bin
+$ mv etcdctl /usr/bin
+```
+
+## 配置etcd.service
+```shell
+$ cd /usr/lib/systemd/system
+$ vi etcd.service
+```
+
+添加如下内容
+```text
+[Unit]
+Description=Etcd Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/lib/etcd/
+EnvironmentFile=-/etc/etcd/etcd.conf
+
+ExecStart=/usr/bin/etcd
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## 新建工作目录
+```shell
+$ mkdir /var/lib/etcd
+```
+
+## 配置etcd.conf
+```shell
+$ mkdir /etc/etcd
+$ vi /etc/etcd/etcd.conf
+```
+
+添加如下内容
+```text
+#[member]
+ETCD_NAME=default
+ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+ETCD_LISTEN_CLIENT_URLS="http://${IP}:2379"
+
+ETCD_ADVERTISE_CLIENT_URLS="http://localhost:2379"
+```
+> 为了能让其他虚拟机访问，这里的${IP}配置的是机器ip
+
+## 设置开机启动
+```shell
+$ systemctl daemon-reload
+$ systemctl enable etcd.service
+```
+
+## 启动etcd
+```shell
+$ systemctl start etcd.service
 ```

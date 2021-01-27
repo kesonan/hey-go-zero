@@ -12,7 +12,7 @@
 * [简单的k8s集群安装](../share/k8s_install.md)
 * [gitlab安装](../share/gitlab.md)
 * [jenkins安装](../share/jenkins-install.md)
-* [redis&mysql&nginx安装](../share/data.md)
+* [redis&mysql&nginx&Etcd安装](../share/data.md)
 
 > ## 温馨提示
 > 由于后续我们利用jenkins来部署服务到k8s，请将jenkins安装在k8s的某一个节点上。
